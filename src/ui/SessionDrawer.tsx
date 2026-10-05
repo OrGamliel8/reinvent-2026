@@ -14,7 +14,7 @@ export function SessionDrawer(): ReactNode {
   const { sessionKey, openSession } = useUi();
   return (
     <Sheet open={sessionKey !== null} onOpenChange={(open) => !open && openSession(null)}>
-      <SheetContent className="w-full gap-0 p-0 sm:max-w-xl">{sessionKey && <SessionDetail sessionKey={sessionKey} />}</SheetContent>
+      <SheetContent className="w-full gap-0 p-0 data-[side=right]:sm:max-w-xl">{sessionKey && <SessionDetail sessionKey={sessionKey} />}</SheetContent>
     </Sheet>
   );
 }

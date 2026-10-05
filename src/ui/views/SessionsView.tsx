@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, SearchX } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen, SearchX } from 'lucide-react';
 import { createColumnHelper, tableFeatures, useTable } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import type { Filters, RankedSession, SortBy } from '@/core/types';
@@ -40,16 +40,46 @@ const columns = helper.columns([
 
 const SORTABLE: Partial<Record<string, SortBy>> = { score: 'score', time: 'time', level: 'level', venue: 'venue', seats: 'seats' };
 
+// Width and responsive visibility per column, keyed to the table container's width (not the viewport),
+// so collapsing the filter sidebar brings columns back. Title takes the remaining space.
+const LAYOUT: Record<string, { col: string; cell: string }> = {
+  star: { col: 'w-9', cell: '' },
+  score: { col: 'w-24', cell: '' },
+  code: { col: 'hidden w-24 @6xl:table-column', cell: 'hidden @6xl:table-cell' },
+  title: { col: '', cell: '' },
+  type: { col: 'hidden w-32 @4xl:table-column', cell: 'hidden @4xl:table-cell' },
+  level: { col: 'hidden w-14 @6xl:table-column', cell: 'hidden @6xl:table-cell' },
+  time: { col: 'w-44', cell: '' },
+  venue: { col: 'hidden w-32 @3xl:table-column', cell: 'hidden @3xl:table-cell' },
+  seats: { col: 'hidden w-16 @6xl:table-column', cell: 'hidden @6xl:table-cell' },
+  add: { col: 'w-10', cell: '' },
+};
+
+const SIDEBAR_KEY = 'reinvent.sessions.filtersOpen';
+
+function initialSidebarOpen(): boolean {
+  try {
+    const stored = localStorage.getItem(SIDEBAR_KEY);
+    if (stored !== null) return stored === '1';
+  } catch {
+    // storage unavailable: fall back to width
+  }
+  return window.innerWidth >= 1024;
+}
+
 function TitleCell({ row }: { row: RankedSession }): ReactNode {
   const { openSession } = useUi();
   return (
     <button className="block w-full min-w-0 text-left" onClick={() => openSession(row.session.key)}>
-      <div className="flex items-center gap-1.5">
-        <span className="truncate text-[13px] font-medium hover:underline">{row.session.title}</span>
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span className="shrink-0 font-mono text-[11px] text-muted-foreground @6xl:hidden">{row.session.code}</span>
+        <span className="min-w-0 truncate text-[13px] font-medium hover:underline" title={row.session.title}>
+          {row.session.title}
+        </span>
         {row.session.tba && <TbaBadge />}
         {row.onAgenda && <span className="size-1.5 shrink-0 rounded-full bg-success" title="On your agenda" />}
       </div>
-      <MatchChips explanation={row.explanation} className="mt-0.5" />
+      <MatchChips explanation={row.explanation} className="mt-0.5 flex-nowrap overflow-hidden" />
     </button>
   );
 }
@@ -70,6 +100,17 @@ export function SessionsView(): ReactNode {
   const [query, setQuery] = useState('');
   const q = useDebounced(query.trim(), 250);
   const [paging, setPaging] = useState({ key: '', page: 0 });
+  const [sidebarOpen, setSidebarOpen] = useState(initialSidebarOpen);
+
+  const toggleSidebar = (): void => {
+    const next = !sidebarOpen;
+    setSidebarOpen(next);
+    try {
+      localStorage.setItem(SIDEBAR_KEY, next ? '1' : '0');
+    } catch {
+      // per-viewer convenience only
+    }
+  };
 
   const effective = useMemo(() => ({ ...filters, q: q || undefined }), [filters, q]);
   const filterKey = JSON.stringify(effective);
@@ -95,21 +136,15 @@ export function SessionsView(): ReactNode {
 
   return (
     <div className="flex h-full">
-      {vocabulary && <FilterPanel vocabulary={vocabulary} filters={filters} onChange={setFilters} query={query} onQueryChange={setQuery} />}
-      <div className="flex min-w-0 flex-1 flex-col">
+      {vocabulary && sidebarOpen && <FilterPanel vocabulary={vocabulary} filters={filters} onChange={setFilters} query={query} onQueryChange={setQuery} />}
+      <div className="@container flex min-w-0 flex-1 flex-col">
         <div className={cn('min-h-0 flex-1 overflow-auto transition-opacity', loading && 'opacity-60')}>
-          <table className="w-full table-fixed border-collapse text-sm">
+          {/* min width = always-visible columns + ~260px for Title; narrower containers scroll horizontally */}
+          <table className="w-full min-w-[610px] table-fixed border-collapse text-sm">
             <colgroup>
-              <col className="w-9" />
-              <col className="w-24" />
-              <col className="w-24" />
-              <col />
-              <col className="w-32" />
-              <col className="w-14" />
-              <col className="w-44" />
-              <col className="w-32" />
-              <col className="w-16" />
-              <col className="w-10" />
+              {columns.map((column) => (
+                <col key={column.id} className={LAYOUT[column.id!]?.col} />
+              ))}
             </colgroup>
             <thead className="sticky top-0 z-10 bg-background">
               {table.getHeaderGroups().map((group) => (
@@ -118,7 +153,7 @@ export function SessionsView(): ReactNode {
                     const sortBy = SORTABLE[header.column.id];
                     const active = sortBy && filters.sort?.by === sortBy;
                     return (
-                      <th key={header.id} className="h-8 px-2 text-left text-xs font-medium text-muted-foreground">
+                      <th key={header.id} className={cn('h-8 truncate px-2 text-left text-xs font-medium whitespace-nowrap text-muted-foreground', LAYOUT[header.column.id]?.cell)}>
                         {sortBy ? (
                           <button className={cn('inline-flex items-center gap-1 hover:text-foreground', active && 'text-foreground')} onClick={() => toggleSort(sortBy)}>
                             <table.FlexRender header={header} />
@@ -137,7 +172,7 @@ export function SessionsView(): ReactNode {
               {table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className={cn('border-b border-border/60 hover:bg-muted/50', row.original.onAgenda && 'bg-success/5')}>
                   {row.getAllCells().map((cell) => (
-                    <td key={cell.id} className="px-2 py-1.5 align-middle">
+                    <td key={cell.id} className={cn('px-2 py-1.5 align-middle', LAYOUT[cell.column.id]?.cell)}>
                       <table.FlexRender cell={cell} />
                     </td>
                   ))}
@@ -151,8 +186,19 @@ export function SessionsView(): ReactNode {
             </EmptyState>
           )}
         </div>
-        <footer className="flex h-10 shrink-0 items-center justify-between border-t px-3 text-xs text-muted-foreground">
-          <span>
+        <footer className="flex h-10 shrink-0 items-center justify-between gap-2 border-t px-2 text-xs text-muted-foreground">
+          <Button
+            size="xs"
+            variant="ghost"
+            onClick={toggleSidebar}
+            aria-expanded={sidebarOpen}
+            title={sidebarOpen ? 'Hide filters' : 'Show filters'}
+            className="text-muted-foreground"
+          >
+            {sidebarOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
+            <span className="hidden @lg:inline">{sidebarOpen ? 'Hide filters' : 'Filters'}</span>
+          </Button>
+          <span className="mr-auto truncate">
             {!rows && 'Ranking…'}
             {rows && `${all.length.toLocaleString()} sessions`}{all.length > 0 && ` · showing ${page * PAGE_SIZE + 1}–${Math.min(all.length, (page + 1) * PAGE_SIZE)}`}
           </span>

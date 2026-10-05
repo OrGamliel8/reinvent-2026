@@ -31,7 +31,7 @@ export function ExportControls(): ReactNode {
 
   return (
     <div className="flex items-center gap-2">
-      <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <label className="flex items-center gap-1.5 text-xs whitespace-nowrap text-muted-foreground">
         <Checkbox checked={includePersonal} onCheckedChange={(c) => setIncludePersonal(c === true)} />
         Include personal blocks
       </label>

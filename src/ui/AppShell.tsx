@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { Bell, CalendarDays, CalendarRange, ClipboardCheck, List, Map as MapIcon, Settings as SettingsIcon, UserRound } from 'lucide-react';
+import { Bell, CalendarDays, Info, CalendarRange, ClipboardCheck, List, Map as MapIcon, Settings as SettingsIcon, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { usePlannerQuery } from './PlannerProvider';
 import { useUi, type TabId } from './UiState';
 import { fmtDateTime } from './format';
@@ -31,20 +32,20 @@ export function AppShell(): ReactNode {
   const { tab, setTab } = useUi();
   return (
     <Tabs value={tab} onValueChange={(value) => setTab(value as TabId)} className="flex h-full flex-col gap-0">
-      <header className="flex h-12 shrink-0 items-center gap-4 border-b bg-sidebar px-4">
-        <div className="flex items-center gap-2">
+      <header className="flex h-12 shrink-0 items-center gap-3 border-b bg-sidebar px-3 lg:gap-4 lg:px-4">
+        <div className="flex shrink-0 items-center gap-2" title="re:Invent 2026 Planner">
           <div className="flex size-6 items-center justify-center rounded-md bg-primary text-[11px] font-bold text-primary-foreground">rI</div>
-          <span className="text-sm font-semibold whitespace-nowrap">re:Invent 2026 Planner</span>
+          <span className="hidden text-sm font-semibold whitespace-nowrap md:inline lg:hidden xl:inline">re:Invent 2026 Planner</span>
         </div>
-        <TabsList variant="line" className="h-12! gap-1 overflow-x-auto">
+        <TabsList variant="line" className="h-12! min-w-0 gap-1 overflow-x-auto overflow-y-hidden">
           {TABS.map(({ id, label, icon: Icon }) => (
-            <TabsTrigger key={id} value={id} className="px-2 text-[13px]">
+            <TabsTrigger key={id} value={id} title={label} aria-label={label} className="px-2 text-[13px]">
               <Icon />
-              {label}
+              <span className="hidden lg:inline">{label}</span>
             </TabsTrigger>
           ))}
         </TabsList>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           <CatalogFreshness />
           <AlertsBell />
           <ThemeToggle />
@@ -65,10 +66,23 @@ export function AppShell(): ReactNode {
 function CatalogFreshness(): ReactNode {
   const { data: meta } = usePlannerQuery((api) => api.meta(), []);
   if (!meta) return null;
+  const sessions = `${meta.sessionCount.toLocaleString()} sessions`;
+  const full = `Catalog refreshed ${fmtDateTime(meta.fetchedAt)} · ${sessions}`;
   return (
-    <span className="hidden text-xs whitespace-nowrap text-muted-foreground lg:inline" title={meta.sourceUrl}>
-      Catalog refreshed {fmtDateTime(meta.fetchedAt)} · {meta.sessionCount.toLocaleString()} sessions
-    </span>
+    <>
+      <span className="hidden text-xs whitespace-nowrap text-muted-foreground min-[1360px]:inline" title={meta.sourceUrl}>
+        {full}
+      </span>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button className="inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-xs whitespace-nowrap text-muted-foreground hover:text-foreground min-[1360px]:hidden" aria-label={full}>
+            <Info className="size-3.5" />
+            <span className="hidden md:inline lg:hidden xl:inline">{sessions}</span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>{full}</TooltipContent>
+      </Tooltip>
+    </>
   );
 }
 

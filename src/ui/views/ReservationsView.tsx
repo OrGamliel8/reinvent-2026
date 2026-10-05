@@ -27,7 +27,7 @@ export function ReservationsView(): ReactNode {
   const counts = STATUSES.map((s) => [s, items.filter((i) => i.status === s).length] as const).filter(([, n]) => n > 0);
   return (
     <div className="h-full overflow-auto">
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
         <p className="text-sm text-muted-foreground">Reserve top to bottom: smallest rooms, single-slot and hands-on sessions come first.</p>
         <div className="ml-auto flex gap-1.5">
           {counts.map(([status, n]) => (
@@ -37,15 +37,15 @@ export function ReservationsView(): ReactNode {
           ))}
         </div>
       </div>
-      <Table className="text-[13px]">
+      <Table className="min-w-[720px] table-fixed text-[13px]">
         <TableHeader className="sticky top-0 bg-background">
           <TableRow>
             <TableHead className="w-10">#</TableHead>
-            <TableHead className="w-36">Code</TableHead>
+            <TableHead className="w-28">Code</TableHead>
             <TableHead>Title</TableHead>
             <TableHead className="w-44">Slot</TableHead>
-            <TableHead className="w-32">Venue</TableHead>
-            <TableHead className="w-32">Room</TableHead>
+            <TableHead className="hidden w-32 lg:table-cell">Venue</TableHead>
+            <TableHead className="hidden w-32 xl:table-cell">Room</TableHead>
             <TableHead className="w-16 text-right">Seats</TableHead>
             <TableHead className="w-36">Status</TableHead>
           </TableRow>
@@ -72,14 +72,18 @@ function ChecklistRow({ item, index }: { item: ChecklistItem; index: number }): 
           <span className="font-mono text-xs">{item.code}</span>
           <CopyButton text={item.code} label="Copy session code" />
         </TableCell>
-        <TableCell className="max-w-0">
-          <button className="block w-full truncate text-left font-medium hover:underline" onClick={() => openSession(item.sessionKey)}>
+        <TableCell>
+          <button className="block w-full truncate text-left font-medium hover:underline" title={item.title} onClick={() => openSession(item.sessionKey)}>
             {item.title}
           </button>
+          <div className="truncate text-xs text-muted-foreground xl:hidden">
+            <span className="lg:hidden">{venueName(item.slot.venue)}</span>
+            {item.slot.room && <span className="before:content-['_·_'] lg:before:content-none">{item.slot.room}</span>}
+          </div>
         </TableCell>
         <TableCell className="text-xs">{slotWhen(item.slot)}</TableCell>
-        <TableCell className="text-xs">{venueName(item.slot.venue)}</TableCell>
-        <TableCell className="truncate text-xs">{item.slot.room ?? '—'}</TableCell>
+        <TableCell className="hidden text-xs lg:table-cell">{venueName(item.slot.venue)}</TableCell>
+        <TableCell className="hidden truncate text-xs xl:table-cell">{item.slot.room ?? '—'}</TableCell>
         <TableCell className="text-right font-mono text-xs tabular-nums">{item.slot.seats ?? '—'}</TableCell>
         <TableCell>
           <Select value={item.status} onValueChange={(status) => void mutate((api) => api.setReservationStatus(item.itemId, status as ReservationStatus))}>

@@ -16,7 +16,7 @@ export function ProfileView(): ReactNode {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto flex max-w-6xl gap-8 px-6 pb-10">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 pb-10 lg:flex-row">
         <div className="min-w-0 flex-1">
           {profile ? (
             <ProfileEditor key={JSON.stringify(profile)} profile={profile} vocabulary={vocabulary} />
@@ -29,11 +29,11 @@ export function ProfileView(): ReactNode {
                 </li>
                 <li>Or click "Copy prompt", paste it into any Claude chat with your description, and save the JSON it returns.</li>
               </ol>
-              <p className="mt-3">Then import the JSON on the right.</p>
+              <p className="mt-3">Then import the JSON in the Import panel.</p>
             </EmptyState>
           )}
         </div>
-        <aside className="w-80 shrink-0 space-y-6 pt-4">
+        <aside className="w-full shrink-0 space-y-6 border-t pt-6 lg:w-80 lg:border-t-0 lg:pt-4">
           {profile?.description && (
             <section className="space-y-2">
               <SectionTitle>Your description</SectionTitle>

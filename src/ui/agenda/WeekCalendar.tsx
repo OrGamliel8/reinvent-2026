@@ -21,7 +21,7 @@ export function WeekCalendar({ entries, conflictItemIds }: WeekCalendarProps): R
   const hours = Array.from({ length: (GRID_END - GRID_START) / 60 + 1 }, (_, i) => GRID_START + i * 60);
   const height = (GRID_END - GRID_START) * PX_PER_MIN;
   return (
-    <div className="min-w-[760px]">
+    <div className="min-w-[700px]">
       <div className="sticky top-0 z-20 grid grid-cols-[3.5rem_repeat(5,1fr)] border-b bg-background">
         <div />
         {DAYS.map((d) => (

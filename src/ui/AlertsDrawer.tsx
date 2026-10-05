@@ -22,7 +22,7 @@ export function AlertsDrawer(): ReactNode {
   const { alertsOpen, setAlertsOpen } = useUi();
   return (
     <Sheet open={alertsOpen} onOpenChange={setAlertsOpen}>
-      <SheetContent className="w-full gap-0 p-0 sm:max-w-lg">
+      <SheetContent className="w-full gap-0 p-0 data-[side=right]:sm:max-w-lg">
         <SheetHeader className="border-b p-4">
           <SheetTitle>Change alerts</SheetTitle>
           <SheetDescription>What changed in your plan since the last catalog refresh.</SheetDescription>

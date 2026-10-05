@@ -13,6 +13,8 @@ const DAY_END = 20 * 60;
 const PX_PER_MIN = 2;
 const ROW_HEIGHT = 26;
 const LANE_LABEL_WIDTH = 120;
+const TRACK_PAD = 24; // room for the first/last hour labels, which are centred on their gridline
+const x = (minute: number): number => TRACK_PAD + (minute - DAY_START) * PX_PER_MIN;
 const LIMITS = [50, 100, 200, 500];
 
 interface Block {
@@ -72,13 +74,13 @@ export function TimelineView(): ReactNode {
   }, [data, day]);
 
   const hours = Array.from({ length: (DAY_END - DAY_START) / 60 + 1 }, (_, i) => DAY_START + i * 60);
-  const width = (DAY_END - DAY_START) * PX_PER_MIN;
+  const width = (DAY_END - DAY_START) * PX_PER_MIN + TRACK_PAD * 2;
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex shrink-0 items-center gap-3 border-b px-4 py-2">
         <DayPicker value={day} onChange={setDay} />
-        <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="ml-auto flex items-center gap-2 text-xs whitespace-nowrap text-muted-foreground">
           Top
           <Select value={String(limit)} onValueChange={(v) => setLimit(Number(v))}>
             <SelectTrigger size="sm" className="w-20">
@@ -92,7 +94,9 @@ export function TimelineView(): ReactNode {
               ))}
             </SelectContent>
           </Select>
-          ranked sessions · shading = relevance · <span className="inline-block size-2.5 rounded-sm bg-primary" /> on agenda
+          ranked
+          <span className="hidden xl:inline">sessions · shading = relevance</span>
+          <span className="inline-block size-2.5 rounded-sm bg-primary" /> on agenda
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
@@ -101,7 +105,7 @@ export function TimelineView(): ReactNode {
             <div style={{ width: LANE_LABEL_WIDTH }} className="sticky left-0 z-10 shrink-0 bg-background" />
             <div className="relative" style={{ width }}>
               {hours.map((m) => (
-                <span key={m} className="absolute top-1.5 -translate-x-1/2 text-[11px] text-muted-foreground" style={{ left: (m - DAY_START) * PX_PER_MIN }}>
+                <span key={m} className="absolute top-1.5 -translate-x-1/2 text-[11px] text-muted-foreground" style={{ left: x(m) }}>
                   {fmtMinutes(m)}
                 </span>
               ))}
@@ -115,7 +119,7 @@ export function TimelineView(): ReactNode {
               </div>
               <div className="relative" style={{ width, height: rows * ROW_HEIGHT + 8 }}>
                 {hours.map((m) => (
-                  <div key={m} className="absolute inset-y-0 border-l border-border/50" style={{ left: (m - DAY_START) * PX_PER_MIN }} />
+                  <div key={m} className="absolute inset-y-0 border-l border-border/50" style={{ left: x(m) }} />
                 ))}
                 {blocks.map((b) => (
                   <TimelineBlock key={b.slotId} block={b} />
@@ -144,7 +148,7 @@ function TimelineBlock({ block }: { block: Block & { row: number } }): ReactNode
         block.onAgenda ? 'border-primary bg-primary font-medium text-primary-foreground' : 'border-transparent text-foreground',
       )}
       style={{
-        left: (block.startMin - DAY_START) * PX_PER_MIN,
+        left: x(block.startMin),
         width: Math.max(8, (block.endMin - block.startMin) * PX_PER_MIN - 2),
         top: 4 + block.row * ROW_HEIGHT,
         height: ROW_HEIGHT - 4,
