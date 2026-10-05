@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "name": "Security & AI platform engineer",
+  "description": "I'm a platform engineer on a security product team. We're building AI agents on Amazon Bedrock that triage security findings, so I want to learn how to secure agentic AI (guardrails, prompt injection, agent identity and permissions), modern threat detection and incident response on AWS, and how to run agents in production (observability, evaluation, cost). Some interest in data perimeters and zero trust. Advanced/expert content only, I prefer chalk talks, workshops and builders' sessions over breakouts since those get recorded. Not interested in blockchain, SAP, or mainframe migration. I'm there Monday to Thursday, 8:30 to 18:00, leaving Thursday at 16:00. Keep lunch free 12:00-13:00, at most 6 sessions a day.",
+  "interests": [
+    {
+      "label": "Securing agentic AI",
+      "weight": 1,
+      "keywords": ["agentic AI security", "securing AI agents", "AI agent security", "guardrails", "Bedrock Guardrails", "prompt injection", "jailbreak", "responsible AI", "agent permissions", "MCP security", "LLM security"]
+    },
+    {
+      "label": "Threat detection & incident response",
+      "weight": 0.85,
+      "keywords": ["threat detection", "incident response", "GuardDuty", "Security Hub", "Detective", "security findings", "SIEM", "threat hunting", "security automation", "Security Lake"]
+    },
+    {
+      "label": "AI agents in production",
+      "weight": 0.7,
+      "keywords": ["AgentCore", "Bedrock Agents", "multi-agent", "agent observability", "agent evaluation", "production agents", "Strands Agents", "Model Context Protocol"]
+    },
+    {
+      "label": "Identity, zero trust & data perimeters",
+      "weight": 0.55,
+      "keywords": ["zero trust", "data perimeter", "least privilege", "IAM policies", "Verified Permissions", "service control policies", "workload identity"]
+    },
+    {
+      "label": "Security platform engineering",
+      "weight": 0.4,
+      "keywords": ["security platform", "DevSecOps", "policy as code", "multi-account security", "security at scale"]
+    }
+  ],
+  "topics": {
+    "Security & Identity": 1,
+    "Artificial Intelligence": 0.8,
+    "Cloud Operations": 0.3,
+    "Architecture": 0.25
+  },
+  "services": {
+    "Amazon Bedrock": 0.9,
+    "AWS Security Agent": 0.8,
+    "Amazon GuardDuty": 0.8,
+    "AWS Security Hub": 0.75,
+    "AWS Security Incident Response": 0.6,
+    "Amazon Detective": 0.5,
+    "AWS Identity and Access Management (IAM)": 0.5,
+    "Amazon Verified Permissions": 0.4,
+    "AWS Organizations": 0.3
+  },
+  "level": { "min": 300, "max": 400 },
+  "formats": {
+    "Chalk talk": 0.7,
+    "Workshop": 0.6,
+    "Builders' session": 0.6,
+    "Code talk": 0.5,
+    "Breakout session": -0.3,
+    "Exam prep": -1
+  },
+  "avoid": {
+    "keywords": ["blockchain", "mainframe"],
+    "topics": [],
+    "services": []
+  },
+  "availability": {
+    "days": {
+      "mon": { "start": "08:30", "end": "18:00" },
+      "tue": { "start": "08:30", "end": "18:00" },
+      "wed": { "start": "08:30", "end": "18:00" },
+      "thu": { "start": "08:30", "end": "16:00" }
+    },
+    "lunch": { "start": "12:00", "end": "13:00" },
+    "maxPerDay": 6
+  }
+}

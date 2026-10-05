@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "name": "Security & AI platform engineer (fixture)",
+  "description": "I build the security platform for our AI agents. I care most about securing agentic AI, then threat detection, and a bit about data lakes. Advanced content, hands-on formats, no blockchain. Friday I leave after lunch.",
+  "interests": [
+    { "label": "Securing AI agents", "weight": 1, "keywords": ["agentic", "AI agents", "guardrails", "prompt injection"] },
+    { "label": "Threat detection", "weight": 0.8, "keywords": ["threat detection", "GuardDuty", "security findings"] },
+    { "label": "Data lakes", "weight": 0.4, "keywords": ["data lake", "Iceberg"] }
+  ],
+  "topics": { "Security & Identity": 0.9, "Artificial Intelligence": 0.6 },
+  "services": { "Amazon Bedrock": 0.7, "Amazon GuardDuty": 0.8 },
+  "level": { "min": 300, "max": 400 },
+  "formats": { "Chalk talk": 0.6, "Workshop": 0.8 },
+  "avoid": { "keywords": ["blockchain"], "topics": [], "services": [] },
+  "availability": {
+    "days": {
+      "mon": { "start": "08:00", "end": "18:00" },
+      "tue": { "start": "08:00", "end": "18:00" },
+      "wed": { "start": "08:00", "end": "18:00" },
+      "thu": { "start": "08:00", "end": "18:00" },
+      "fri": { "start": "09:00", "end": "13:00" }
+    },
+    "lunch": { "start": "12:00", "end": "13:00" },
+    "maxPerDay": 6
+  }
+}

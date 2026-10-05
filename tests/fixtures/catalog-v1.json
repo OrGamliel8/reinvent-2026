@@ -1,0 +1,1730 @@
+{
+  "catalog": [
+    {
+      "id": "e-ant319-r",
+      "hash": "7522c8d078156bdeda19036901b291d1",
+      "shortId": "ANT319-R",
+      "title": "Building agentic data lakes with Amazon Bedrock and Apache Iceberg",
+      "abstract": "Design an agentic analytics layer over an Apache Iceberg data lake. Learn how AI agents built on Amazon Bedrock query governed tables with Amazon Athena while guardrails keep data access least-privilege.",
+      "startDateTime": "2026-11-30T18:00:00.000Z",
+      "startTime": "10:00",
+      "startTimeFormatted": "2026-11-30T18:00:00.000Z",
+      "endDateTime": "2026-11-30T19:00:00.000Z",
+      "endTime": "11:00",
+      "sessionTimeId": "st-e-ant319-r",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-ant319-r-0",
+          "displayName": "Priya Raman",
+          "name": "Priya Raman",
+          "firstName": "Priya",
+          "lastName": "Raman",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Wynn/Encore",
+        "displayName": "Wynn/Encore"
+      },
+      "day": "Monday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Bedrock"
+        },
+        {
+          "id": "Services",
+          "displayName": "Amazon Athena"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Analytics"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [
+        {
+          "id": "AreaofInterest",
+          "displayName": "Agentic AI"
+        },
+        {
+          "id": "AreaofInterest",
+          "displayName": "Data lakes"
+        }
+      ],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 96,
+      "repeats": [
+        {
+          "id": "e-ant319-r1",
+          "shortId": "ANT319-R1",
+          "startDateTime": "2026-12-02T23:00:00.000Z",
+          "endDateTime": "2026-12-03T00:00:00.000Z",
+          "startTime": "15:00",
+          "endTime": "16:00",
+          "day": "Wednesday",
+          "venue": {
+            "id": "Wynn/Encore",
+            "displayName": "Wynn/Encore"
+          }
+        }
+      ]
+    },
+    {
+      "id": "e-ant319-r1",
+      "hash": "68811ac2a6a748d1cc282740cbc697d6",
+      "shortId": "ANT319-R1",
+      "title": "Building agentic data lakes with Amazon Bedrock and Apache Iceberg",
+      "abstract": "Design an agentic analytics layer over an Apache Iceberg data lake. Learn how AI agents built on Amazon Bedrock query governed tables with Amazon Athena while guardrails keep data access least-privilege.",
+      "startDateTime": "2026-12-02T23:00:00.000Z",
+      "startTime": "15:00",
+      "startTimeFormatted": "2026-12-02T23:00:00.000Z",
+      "endDateTime": "2026-12-03T00:00:00.000Z",
+      "endTime": "16:00",
+      "sessionTimeId": "st-e-ant319-r1",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-ant319-r1-0",
+          "displayName": "Priya Raman",
+          "name": "Priya Raman",
+          "firstName": "Priya",
+          "lastName": "Raman",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Wynn/Encore",
+        "displayName": "Wynn/Encore"
+      },
+      "day": "Wednesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Bedrock"
+        },
+        {
+          "id": "Services",
+          "displayName": "Amazon Athena"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Analytics"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [
+        {
+          "id": "AreaofInterest",
+          "displayName": "Agentic AI"
+        },
+        {
+          "id": "AreaofInterest",
+          "displayName": "Data lakes"
+        }
+      ],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 96,
+      "repeats": [
+        {
+          "id": "e-ant319-r2",
+          "shortId": "ANT319-R2",
+          "startDateTime": "2026-12-03T17:00:00.000Z",
+          "endDateTime": "2026-12-03T18:00:00.000Z",
+          "startTime": "09:00",
+          "endTime": "10:00",
+          "day": "Thursday",
+          "venue": {
+            "id": "MGM_Grand",
+            "displayName": "MGM Grand"
+          }
+        }
+      ]
+    },
+    {
+      "id": "e-ant319-r2",
+      "hash": "ceff7781a7cb884c6cf7e1cac2134101",
+      "shortId": "ANT319-R2",
+      "title": "Building agentic data lakes with Amazon Bedrock and Apache Iceberg",
+      "abstract": "Design an agentic analytics layer over an Apache Iceberg data lake. Learn how AI agents built on Amazon Bedrock query governed tables with Amazon Athena while guardrails keep data access least-privilege.",
+      "startDateTime": "2026-12-03T17:00:00.000Z",
+      "startTime": "09:00",
+      "startTimeFormatted": "2026-12-03T17:00:00.000Z",
+      "endDateTime": "2026-12-03T18:00:00.000Z",
+      "endTime": "10:00",
+      "sessionTimeId": "st-e-ant319-r2",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-ant319-r2-0",
+          "displayName": "Priya Raman",
+          "name": "Priya Raman",
+          "firstName": "Priya",
+          "lastName": "Raman",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "MGM_Grand",
+        "displayName": "MGM Grand"
+      },
+      "day": "Thursday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Bedrock"
+        },
+        {
+          "id": "Services",
+          "displayName": "Amazon Athena"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Analytics"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [
+        {
+          "id": "AreaofInterest",
+          "displayName": "Agentic AI"
+        },
+        {
+          "id": "AreaofInterest",
+          "displayName": "Data lakes"
+        }
+      ],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 120,
+      "repeats": [
+        {
+          "id": "e-ant319-r1",
+          "shortId": "ANT319-R1",
+          "startDateTime": "2026-12-02T23:00:00.000Z",
+          "endDateTime": "2026-12-03T00:00:00.000Z",
+          "startTime": "15:00",
+          "endTime": "16:00",
+          "day": "Wednesday",
+          "venue": {
+            "id": "Wynn/Encore",
+            "displayName": "Wynn/Encore"
+          }
+        }
+      ]
+    },
+    {
+      "id": "e-sec401",
+      "hash": "cd8070a3b618ac53818d9bc20fb6502f",
+      "shortId": "SEC401",
+      "title": "Hands-on threat detection for agentic AI workloads",
+      "abstract": "In this workshop you build threat detection for AI agents: wire Amazon GuardDuty findings, detect prompt injection attempts against Amazon Bedrock agents, and automate response.",
+      "startDateTime": "2026-11-30T18:00:00.000Z",
+      "startTime": "10:00",
+      "startTimeFormatted": "2026-11-30T18:00:00.000Z",
+      "endDateTime": "2026-11-30T20:00:00.000Z",
+      "endTime": "12:00",
+      "sessionTimeId": "st-e-sec401",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-sec401-0",
+          "displayName": "Marcus Lee",
+          "name": "Marcus Lee",
+          "firstName": "Marcus",
+          "lastName": "Lee",
+          "company": "AWS"
+        },
+        {
+          "id": "sp-e-sec401-1",
+          "displayName": "Dana Ortiz",
+          "name": "Dana Ortiz",
+          "firstName": "Dana",
+          "lastName": "Ortiz",
+          "company": "Acme Corp"
+        }
+      ],
+      "venue": {
+        "id": "Venetian",
+        "displayName": "Venetian"
+      },
+      "day": "Monday",
+      "type": {
+        "id": "Type",
+        "displayName": "Workshop"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "400 - Expert",
+        "value": 400
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon GuardDuty"
+        },
+        {
+          "id": "Services",
+          "displayName": "Amazon Bedrock"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [
+        {
+          "id": "AreaofInterest",
+          "displayName": "Threat detection"
+        },
+        {
+          "id": "AreaofInterest",
+          "displayName": "Agentic AI"
+        }
+      ],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Hands-on"
+        }
+      ],
+      "seatCapacity": 50,
+      "venueRoomName": "Level 3 | Lido 3001"
+    },
+    {
+      "id": "e-sec310",
+      "hash": "519231880918479b27a4ea4adf8c8137",
+      "shortId": "SEC310",
+      "title": "Defending generative AI applications against prompt injection",
+      "abstract": "Prompt injection is the top risk for generative AI applications. Learn layered defenses with Amazon Bedrock Guardrails, input validation, and output filtering.",
+      "startDateTime": "2026-12-01T21:00:00.000Z",
+      "startTime": "13:00",
+      "startTimeFormatted": "2026-12-01T21:00:00.000Z",
+      "endDateTime": "2026-12-01T22:00:00.000Z",
+      "endTime": "14:00",
+      "sessionTimeId": "st-e-sec310",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-sec310-0",
+          "displayName": "Alex Kim",
+          "name": "Alex Kim",
+          "firstName": "Alex",
+          "lastName": "Kim",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "MGM_Grand",
+        "displayName": "MGM Grand"
+      },
+      "day": "Tuesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Breakout session"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Bedrock"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Lecture-style"
+        }
+      ],
+      "seatCapacity": 800,
+      "repeats": [
+        {
+          "id": "e-sec310-r",
+          "shortId": "SEC310-R",
+          "startDateTime": "2026-12-03T19:00:00.000Z",
+          "endDateTime": "2026-12-03T20:00:00.000Z",
+          "startTime": "11:00",
+          "endTime": "12:00",
+          "day": "Thursday",
+          "venue": {
+            "id": "Caesars_Forum",
+            "displayName": "Caesars Forum"
+          }
+        }
+      ]
+    },
+    {
+      "id": "e-sec310-r",
+      "hash": "27cdd15f1b41ca95eef151fb40562617",
+      "shortId": "SEC310-R",
+      "title": "Defending generative AI applications against prompt injection",
+      "abstract": "Prompt injection is the top risk for generative AI applications. Learn layered defenses with Amazon Bedrock Guardrails, input validation, and output filtering.",
+      "startDateTime": "2026-12-03T19:00:00.000Z",
+      "startTime": "11:00",
+      "startTimeFormatted": "2026-12-03T19:00:00.000Z",
+      "endDateTime": "2026-12-03T20:00:00.000Z",
+      "endTime": "12:00",
+      "sessionTimeId": "st-e-sec310-r",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-sec310-r-0",
+          "displayName": "Alex Kim",
+          "name": "Alex Kim",
+          "firstName": "Alex",
+          "lastName": "Kim",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Forum",
+        "displayName": "Caesars Forum"
+      },
+      "day": "Thursday",
+      "type": {
+        "id": "Type",
+        "displayName": "Breakout session"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Bedrock"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Lecture-style"
+        }
+      ],
+      "seatCapacity": 500,
+      "repeats": [
+        {
+          "id": "e-sec310",
+          "shortId": "SEC310",
+          "startDateTime": "2026-12-01T21:00:00.000Z",
+          "endDateTime": "2026-12-01T22:00:00.000Z",
+          "startTime": "13:00",
+          "endTime": "14:00",
+          "day": "Tuesday",
+          "venue": {
+            "id": "MGM_Grand",
+            "displayName": "MGM Grand"
+          }
+        }
+      ]
+    },
+    {
+      "id": "e-aim350",
+      "hash": "472a44ef576b01944f8225db34ad9ac3",
+      "shortId": "AIM350",
+      "title": "Build guardrails for production AI agents",
+      "abstract": "Bring your laptop and build guardrails for an AI agent end to end: policies, contextual grounding checks, and evaluation.",
+      "startDateTime": "2026-12-01T21:30:00.000Z",
+      "startTime": "13:30",
+      "startTimeFormatted": "2026-12-01T21:30:00.000Z",
+      "endDateTime": "2026-12-01T22:30:00.000Z",
+      "endTime": "14:30",
+      "sessionTimeId": "st-e-aim350",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-aim350-0",
+          "displayName": "Sam Patel",
+          "name": "Sam Patel",
+          "firstName": "Sam",
+          "lastName": "Patel",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Palace",
+        "displayName": "Caesars Palace"
+      },
+      "day": "Tuesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Builders' session"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Bedrock"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Hands-on"
+        }
+      ],
+      "seatCapacity": 60
+    },
+    {
+      "id": "e-net310",
+      "hash": "5b5812bc46f2b964849996ab3abe589b",
+      "shortId": "NET310",
+      "title": "Network firewall patterns for AI workloads",
+      "abstract": "Inspect and control egress from AI workloads with AWS Network Firewall and VPC design patterns that keep model endpoints private.",
+      "startDateTime": "2026-12-01T21:00:00.000Z",
+      "startTime": "13:00",
+      "startTimeFormatted": "2026-12-01T21:00:00.000Z",
+      "endDateTime": "2026-12-01T22:00:00.000Z",
+      "endTime": "14:00",
+      "sessionTimeId": "st-e-net310",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-net310-0",
+          "displayName": "Jo Chen",
+          "name": "Jo Chen",
+          "firstName": "Jo",
+          "lastName": "Chen",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Venetian",
+        "displayName": "Venetian"
+      },
+      "day": "Tuesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "AWS Network Firewall"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Networking & Content Delivery"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 96
+    },
+    {
+      "id": "e-dev320",
+      "hash": "22e84c25a0e24cbdd41c867a0817e39f",
+      "shortId": "DEV320",
+      "title": "Securing the software supply chain for AI agents",
+      "abstract": "Live code walkthrough: scan agent tool dependencies with Amazon Inspector, sign artifacts, and enforce provenance in CI.",
+      "startDateTime": "2026-12-01T17:00:00.000Z",
+      "startTime": "09:00",
+      "startTimeFormatted": "2026-12-01T17:00:00.000Z",
+      "endDateTime": "2026-12-01T18:00:00.000Z",
+      "endTime": "10:00",
+      "sessionTimeId": "st-e-dev320",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-dev320-0",
+          "displayName": "Riley Novak",
+          "name": "Riley Novak",
+          "firstName": "Riley",
+          "lastName": "Novak",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "MGM_Grand",
+        "displayName": "MGM Grand"
+      },
+      "day": "Tuesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Code talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Inspector"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Developer Tools"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Lecture-style"
+        }
+      ],
+      "seatCapacity": 150
+    },
+    {
+      "id": "e-wps330",
+      "hash": "cac2b93c98f817340fe642dc3c9e2b60",
+      "shortId": "WPS330",
+      "title": "Security findings at scale with AWS Security Hub",
+      "abstract": "Aggregate, prioritize and automate security findings across hundreds of accounts with AWS Security Hub and Amazon EventBridge.",
+      "startDateTime": "2026-12-01T18:15:00.000Z",
+      "startTime": "10:15",
+      "startTimeFormatted": "2026-12-01T18:15:00.000Z",
+      "endDateTime": "2026-12-01T19:15:00.000Z",
+      "endTime": "11:15",
+      "sessionTimeId": "st-e-wps330",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-wps330-0",
+          "displayName": "Morgan Diaz",
+          "name": "Morgan Diaz",
+          "firstName": "Morgan",
+          "lastName": "Diaz",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Wynn/Encore",
+        "displayName": "Wynn/Encore"
+      },
+      "day": "Tuesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "AWS Security Hub"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 96
+    },
+    {
+      "id": "e-iam333",
+      "hash": "64ab5ee96594056bce0e3c100ff07368",
+      "shortId": "IAM333",
+      "title": "Zero trust identity for AI agents",
+      "abstract": "How should AI agents authenticate and authorize? Explore workload identity, AWS IAM Roles Anywhere and fine-grained permissions for agentic systems.",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-iam333-0",
+          "displayName": "Taylor Brooks",
+          "name": "Taylor Brooks",
+          "firstName": "Taylor",
+          "lastName": "Brooks",
+          "company": "AWS"
+        }
+      ],
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "AWS Identity and Access Management (IAM)"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ]
+    },
+    {
+      "id": "e-blk201",
+      "hash": "5188a3cbfdadfada0a8d856293558a40",
+      "shortId": "BLK201",
+      "title": "Agentic AI meets blockchain ledgers",
+      "abstract": "Explore how AI agents can transact on blockchain networks with Amazon Managed Blockchain.",
+      "startDateTime": "2026-12-02T18:00:00.000Z",
+      "startTime": "10:00",
+      "startTimeFormatted": "2026-12-02T18:00:00.000Z",
+      "endDateTime": "2026-12-02T19:00:00.000Z",
+      "endTime": "11:00",
+      "sessionTimeId": "st-e-blk201",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-blk201-0",
+          "displayName": "Chris Wong",
+          "name": "Chris Wong",
+          "firstName": "Chris",
+          "lastName": "Wong",
+          "company": "Ledgerly"
+        }
+      ],
+      "venue": {
+        "id": "Venetian",
+        "displayName": "Venetian"
+      },
+      "day": "Wednesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Breakout session"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "200 - Intermediate",
+        "value": 200
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Managed Blockchain"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Industry Solutions"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [
+        {
+          "id": "Industry",
+          "displayName": "Financial Services"
+        }
+      ],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Lecture-style"
+        }
+      ],
+      "seatCapacity": 400
+    },
+    {
+      "id": "e-stg201",
+      "hash": "d0cf12831e1cb341744f0fdadeca6ab0",
+      "shortId": "STG201",
+      "title": "Amazon S3 storage classes deep dive",
+      "abstract": "Choose the right Amazon S3 storage class and lifecycle rules to optimize cost for any workload.",
+      "startDateTime": "2026-11-30T22:00:00.000Z",
+      "startTime": "14:00",
+      "startTimeFormatted": "2026-11-30T22:00:00.000Z",
+      "endDateTime": "2026-11-30T23:00:00.000Z",
+      "endTime": "15:00",
+      "sessionTimeId": "st-e-stg201",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-stg201-0",
+          "displayName": "Pat Morgan",
+          "name": "Pat Morgan",
+          "firstName": "Pat",
+          "lastName": "Morgan",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Forum",
+        "displayName": "Caesars Forum"
+      },
+      "day": "Monday",
+      "type": {
+        "id": "Type",
+        "displayName": "Breakout session"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "200 - Intermediate",
+        "value": 200
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon S3"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Storage"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Solution / Systems Architect"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Lecture-style"
+        }
+      ],
+      "seatCapacity": 1000
+    },
+    {
+      "id": "e-aim210",
+      "hash": "d5de2ecf14734e8e99e117f0a8807df1",
+      "shortId": "AIM210",
+      "title": "Five agentic patterns in five minutes",
+      "abstract": "A rapid tour of agentic AI design patterns: planners, tool use, reflection, memory and multi-agent collaboration.",
+      "startDateTime": "2026-12-02T20:20:00.000Z",
+      "startTime": "12:20",
+      "startTimeFormatted": "2026-12-02T20:20:00.000Z",
+      "endDateTime": "2026-12-02T20:40:00.000Z",
+      "endTime": "12:40",
+      "sessionTimeId": "st-e-aim210",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-aim210-0",
+          "displayName": "Lee Park",
+          "name": "Lee Park",
+          "firstName": "Lee",
+          "lastName": "Park",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Forum",
+        "displayName": "Caesars Forum"
+      },
+      "day": "Wednesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Lightning talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "200 - Intermediate",
+        "value": 200
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Bedrock"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Lecture-style"
+        }
+      ],
+      "seatCapacity": 120
+    },
+    {
+      "id": "e-cmp301",
+      "hash": "928c6fbb2af649d19c5f069ffff9442d",
+      "shortId": "CMP301",
+      "title": "Cost-aware GPU compute for AI inference",
+      "abstract": "Right-size GPU instances on Amazon EC2 for AI inference and agent workloads; compare capacity blocks and spot.",
+      "startDateTime": "2026-12-02T18:00:00.000Z",
+      "startTime": "10:00",
+      "startTimeFormatted": "2026-12-02T18:00:00.000Z",
+      "endDateTime": "2026-12-02T19:00:00.000Z",
+      "endTime": "11:00",
+      "sessionTimeId": "st-e-cmp301",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-cmp301-0",
+          "displayName": "Avery Shaw",
+          "name": "Avery Shaw",
+          "firstName": "Avery",
+          "lastName": "Shaw",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Forum",
+        "displayName": "Caesars Forum"
+      },
+      "day": "Wednesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon EC2"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Compute"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 96
+    },
+    {
+      "id": "e-cmp301-r",
+      "hash": "955abf65f90efcb6d36967f713a4cc9d",
+      "shortId": "CMP301-R",
+      "title": "Cost-aware GPU compute for AI inference",
+      "abstract": "Right-size GPU instances on Amazon EC2 for AI inference and agent workloads; compare capacity blocks and spot.",
+      "startDateTime": "2026-12-04T18:00:00.000Z",
+      "startTime": "10:00",
+      "startTimeFormatted": "2026-12-04T18:00:00.000Z",
+      "endDateTime": "2026-12-04T19:00:00.000Z",
+      "endTime": "11:00",
+      "sessionTimeId": "st-e-cmp301-r",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-cmp301-r-0",
+          "displayName": "Avery Shaw",
+          "name": "Avery Shaw",
+          "firstName": "Avery",
+          "lastName": "Shaw",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Forum",
+        "displayName": "Caesars Forum"
+      },
+      "day": "Friday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon EC2"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Compute"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 96
+    },
+    {
+      "id": "e-sec350",
+      "hash": "ba2a74ed20aa29f8a93e2d8b68cfa39f",
+      "shortId": "SEC350",
+      "title": "Incident response for compromised AI agents",
+      "abstract": "Workshop: investigate and contain a compromised AI agent using AWS Security Hub, Amazon GuardDuty and automated runbooks.",
+      "startDateTime": "2026-12-02T18:00:00.000Z",
+      "startTime": "10:00",
+      "startTimeFormatted": "2026-12-02T18:00:00.000Z",
+      "endDateTime": "2026-12-02T20:00:00.000Z",
+      "endTime": "12:00",
+      "sessionTimeId": "st-e-sec350",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-sec350-0",
+          "displayName": "Jamie Fox",
+          "name": "Jamie Fox",
+          "firstName": "Jamie",
+          "lastName": "Fox",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Forum",
+        "displayName": "Caesars Forum"
+      },
+      "day": "Wednesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Workshop"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "AWS Security Hub"
+        },
+        {
+          "id": "Services",
+          "displayName": "Amazon GuardDuty"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Hands-on"
+        }
+      ],
+      "seatCapacity": 70
+    },
+    {
+      "id": "e-sec360",
+      "hash": "7008bff995d244fad11ed45fd8cc5d52",
+      "shortId": "SEC360",
+      "title": "Data perimeter guardrails for multi-account environments",
+      "abstract": "Use service control policies and resource control policies to build data perimeter guardrails across AWS Organizations.",
+      "startDateTime": "2026-12-02T19:15:00.000Z",
+      "startTime": "11:15",
+      "startTimeFormatted": "2026-12-02T19:15:00.000Z",
+      "endDateTime": "2026-12-02T20:00:00.000Z",
+      "endTime": "12:00",
+      "sessionTimeId": "st-e-sec360",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-sec360-0",
+          "displayName": "Robin Hale",
+          "name": "Robin Hale",
+          "firstName": "Robin",
+          "lastName": "Hale",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Forum",
+        "displayName": "Caesars Forum"
+      },
+      "day": "Wednesday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "AWS Organizations"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 96
+    },
+    {
+      "id": "e-sec320",
+      "hash": "d1c97b1296fd77da6e3f438d5f9c4803",
+      "shortId": "SEC320",
+      "title": "Threat modeling AI agents",
+      "abstract": "A practical threat modeling method for agentic AI systems, covering tool misuse, prompt injection and data exfiltration.",
+      "startDateTime": "2026-12-03T21:00:00.000Z",
+      "startTime": "13:00",
+      "startTimeFormatted": "2026-12-03T21:00:00.000Z",
+      "endDateTime": "2026-12-03T22:00:00.000Z",
+      "endTime": "14:00",
+      "sessionTimeId": "st-e-sec320",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-sec320-0",
+          "displayName": "Kai Turner",
+          "name": "Kai Turner",
+          "firstName": "Kai",
+          "lastName": "Turner",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Forum",
+        "displayName": "Caesars Forum"
+      },
+      "day": "Thursday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Bedrock"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 96
+    },
+    {
+      "id": "e-sec330",
+      "hash": "1e6506aa5168ede15b49e13c3a482b9d",
+      "shortId": "SEC330",
+      "title": "Detecting anomalous agent behavior with Amazon Detective",
+      "abstract": "Investigate anomalous behavior of AI agents and threat detection signals with Amazon Detective graphs.",
+      "startDateTime": "2026-12-03T22:30:00.000Z",
+      "startTime": "14:30",
+      "startTimeFormatted": "2026-12-03T22:30:00.000Z",
+      "endDateTime": "2026-12-03T23:30:00.000Z",
+      "endTime": "15:30",
+      "sessionTimeId": "st-e-sec330",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-sec330-0",
+          "displayName": "Noor Haddad",
+          "name": "Noor Haddad",
+          "firstName": "Noor",
+          "lastName": "Haddad",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Forum",
+        "displayName": "Caesars Forum"
+      },
+      "day": "Thursday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "400 - Expert",
+        "value": 400
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon Detective"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 80
+    },
+    {
+      "id": "e-sec340",
+      "hash": "00222c8cc4590a1b4b39df117503534b",
+      "shortId": "SEC340",
+      "title": "Secrets management for AI agents",
+      "abstract": "Keep agent credentials and API keys out of prompts with AWS Secrets Manager rotation patterns.",
+      "startDateTime": "2026-12-04T00:00:00.000Z",
+      "startTime": "16:00",
+      "startTimeFormatted": "2026-12-04T00:00:00.000Z",
+      "endDateTime": "2026-12-04T01:00:00.000Z",
+      "endTime": "17:00",
+      "sessionTimeId": "st-e-sec340",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-sec340-0",
+          "displayName": "Eli Grant",
+          "name": "Eli Grant",
+          "firstName": "Eli",
+          "lastName": "Grant",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Caesars_Forum",
+        "displayName": "Caesars Forum"
+      },
+      "day": "Thursday",
+      "type": {
+        "id": "Type",
+        "displayName": "Chalk talk"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "AWS Secrets Manager"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Discussion"
+        }
+      ],
+      "seatCapacity": 96
+    },
+    {
+      "id": "e-ops301",
+      "hash": "92071007c02798253c4465e547215994",
+      "shortId": "OPS301",
+      "title": "Observability for agentic AI with Amazon CloudWatch",
+      "abstract": "Trace every step of an AI agent with Amazon CloudWatch and OpenTelemetry to debug latency and cost.",
+      "startDateTime": "2026-12-04T16:00:00.000Z",
+      "startTime": "08:00",
+      "startTimeFormatted": "2026-12-04T16:00:00.000Z",
+      "endDateTime": "2026-12-04T17:00:00.000Z",
+      "endTime": "09:00",
+      "sessionTimeId": "st-e-ops301",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-ops301-0",
+          "displayName": "Quinn Ellis",
+          "name": "Quinn Ellis",
+          "firstName": "Quinn",
+          "lastName": "Ellis",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "Venetian",
+        "displayName": "Venetian"
+      },
+      "day": "Friday",
+      "type": {
+        "id": "Type",
+        "displayName": "Breakout session"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "300 - Advanced",
+        "value": 300
+      },
+      "services": [
+        {
+          "id": "Services",
+          "displayName": "Amazon CloudWatch"
+        }
+      ],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Cloud Operations"
+        },
+        {
+          "id": "Topic",
+          "displayName": "Artificial Intelligence"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Lecture-style"
+        }
+      ],
+      "seatCapacity": 300
+    },
+    {
+      "id": "e-sec101",
+      "hash": "def7d31258c270267a54c6bb251739d4",
+      "shortId": "SEC101",
+      "title": "Introduction to AWS security for AI builders",
+      "abstract": "Foundational overview of the shared responsibility model, identity, encryption and threat detection for teams starting with generative AI.",
+      "startDateTime": "2026-12-01T00:00:00.000Z",
+      "startTime": "16:00",
+      "startTimeFormatted": "2026-12-01T00:00:00.000Z",
+      "endDateTime": "2026-12-01T01:00:00.000Z",
+      "endTime": "17:00",
+      "sessionTimeId": "st-e-sec101",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [
+        {
+          "id": "sp-e-sec101-0",
+          "displayName": "Sky Rivera",
+          "name": "Sky Rivera",
+          "firstName": "Sky",
+          "lastName": "Rivera",
+          "company": "AWS"
+        }
+      ],
+      "venue": {
+        "id": "MGM_Grand",
+        "displayName": "MGM Grand"
+      },
+      "day": "Monday",
+      "type": {
+        "id": "Type",
+        "displayName": "Breakout session"
+      },
+      "level": {
+        "id": "Level",
+        "displayName": "100 - Foundational",
+        "value": 100
+      },
+      "services": [],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Lecture-style"
+        }
+      ],
+      "seatCapacity": 1000
+    },
+    {
+      "id": "e-gam201",
+      "hash": "6a9189059502078483a2996574b97929",
+      "shortId": "GAM201",
+      "title": "Security jam: capture the flag",
+      "abstract": "Team up and solve security challenges in a gamified capture the flag.",
+      "startDateTime": "2026-12-03T21:00:00.000Z",
+      "startTime": "13:00",
+      "startTimeFormatted": "2026-12-03T21:00:00.000Z",
+      "endDateTime": "2026-12-03T23:00:00.000Z",
+      "endTime": "15:00",
+      "sessionTimeId": "st-e-gam201",
+      "lastModified": "2026-10-02T23:40:40Z",
+      "speakers": [],
+      "venue": {
+        "id": "Caesars_Palace",
+        "displayName": "Caesars Palace"
+      },
+      "day": "Thursday",
+      "type": {
+        "id": "Type",
+        "displayName": "Gamified learning"
+      },
+      "services": [],
+      "topics": [
+        {
+          "id": "Topic",
+          "displayName": "Security & Identity"
+        }
+      ],
+      "areaOfInterest": [],
+      "industry": [],
+      "role": [
+        {
+          "id": "Role",
+          "displayName": "Security Engineer"
+        }
+      ],
+      "features": [
+        {
+          "id": "Features",
+          "displayName": "Hands-on"
+        }
+      ],
+      "seatCapacity": 200
+    }
+  ],
+  "sharedList": null
+}
