@@ -12,6 +12,8 @@ import { BlocksEditor } from './BlocksEditor';
 import { ExportControls } from './ExportControls';
 import { buildEntries } from './calendarModel';
 
+const NO_STARS = new Set<string>();
+
 export function AgendaView(): ReactNode {
   const { mutate } = usePlanner();
   const [result, setResult] = useState<AutoBuildResult | null>(null);
@@ -21,10 +23,10 @@ export function AgendaView(): ReactNode {
   const [panelOpen, setPanelOpen] = useState(() => window.innerWidth >= 1200);
 
   const { data } = usePlannerQuery(async (api) => {
-    const [agenda, blocks, travel, conflicts] = await Promise.all([api.agenda(), api.personalBlocks(), api.travelTable(), api.conflicts()]);
+    const [agenda, blocks, travel, conflicts, starred] = await Promise.all([api.agenda(), api.personalBlocks(), api.travelTable(), api.conflicts(), api.starred()]);
     const keys = [...new Set(agenda.map((i) => i.sessionKey))];
     const sessions = await Promise.all(keys.map((k) => api.session(k)));
-    return { agenda, blocks, travel, conflicts, sessions: new Map(sessions.filter((s): s is Session => s !== null).map((s) => [s.key, s])) };
+    return { agenda, blocks, travel, conflicts, starred: new Set(starred), sessions: new Map(sessions.filter((s): s is Session => s !== null).map((s) => [s.key, s])) };
   }, []);
 
   const entries = useMemo(() => (data ? buildEntries(data.agenda, data.sessions, data.blocks, data.travel) : []), [data]);
@@ -75,7 +77,7 @@ export function AgendaView(): ReactNode {
           </div>
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
-          <WeekCalendar entries={entries} conflictItemIds={conflictIds} />
+          <WeekCalendar entries={entries} conflictItemIds={conflictIds} starredKeys={data?.starred ?? NO_STARS} />
         </div>
       </div>
       <aside className={cn('w-80 shrink-0 flex-col border-l bg-sidebar xl:w-96', panelOpen ? 'flex' : 'hidden')}>

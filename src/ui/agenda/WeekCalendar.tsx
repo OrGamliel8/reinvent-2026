@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Footprints, Pin, PinOff, Trash2 } from 'lucide-react';
+import { Footprints, Pin, PinOff, Star, Trash2 } from 'lucide-react';
 import { DAYS } from '@/core/types';
 import { cn } from '@/lib/utils';
 import { usePlanner } from '../PlannerProvider';
@@ -15,9 +15,10 @@ const PX_PER_MIN = 1.1;
 interface WeekCalendarProps {
   entries: CalendarEntry[];
   conflictItemIds: Set<string>;
+  starredKeys: Set<string>;
 }
 
-export function WeekCalendar({ entries, conflictItemIds }: WeekCalendarProps): ReactNode {
+export function WeekCalendar({ entries, conflictItemIds, starredKeys }: WeekCalendarProps): ReactNode {
   const hours = Array.from({ length: (GRID_END - GRID_START) / 60 + 1 }, (_, i) => GRID_START + i * 60);
   const height = (GRID_END - GRID_START) * PX_PER_MIN;
   return (
@@ -46,7 +47,11 @@ export function WeekCalendar({ entries, conflictItemIds }: WeekCalendarProps): R
             ))}
             {placeDay(entries.filter((e) => e.day === d.id)).map((entry) => (
               <Positioned key={entry.id} entry={entry}>
-                <EntryCard entry={entry} conflict={entry.type === 'session' && conflictItemIds.has(entry.id)} />
+                <EntryCard
+                  entry={entry}
+                  conflict={entry.type === 'session' && conflictItemIds.has(entry.id)}
+                  starred={entry.type === 'session' && starredKeys.has(entry.session.key)}
+                />
               </Positioned>
             ))}
           </div>
@@ -70,13 +75,13 @@ function Positioned({ entry, children }: { entry: PlacedEntry; children: ReactNo
   );
 }
 
-function EntryCard({ entry, conflict }: { entry: CalendarEntry; conflict: boolean }): ReactNode {
-  if (entry.type === 'session') return <SessionCard entry={entry} conflict={conflict} />;
+function EntryCard({ entry, conflict, starred }: { entry: CalendarEntry; conflict: boolean; starred: boolean }): ReactNode {
+  if (entry.type === 'session') return <SessionCard entry={entry} conflict={conflict} starred={starred} />;
   if (entry.type === 'block') return <BlockCard entry={entry} />;
   return <TravelCard entry={entry} />;
 }
 
-function SessionCard({ entry, conflict }: { entry: SessionEntry; conflict: boolean }): ReactNode {
+function SessionCard({ entry, conflict, starred }: { entry: SessionEntry; conflict: boolean; starred: boolean }): ReactNode {
   const { mutate } = usePlanner();
   const { openSession } = useUi();
   const { item, session, slot } = entry;
@@ -91,6 +96,7 @@ function SessionCard({ entry, conflict }: { entry: SessionEntry; conflict: boole
     >
       <button className="block h-full w-full p-1 text-left" onClick={() => openSession(session.key)}>
         <div className="flex items-center gap-1">
+          {starred && <Star aria-label="Starred" className="size-3 shrink-0 fill-warning text-warning" />}
           <span className="truncate font-mono text-muted-foreground">{slot.code}</span>
           {item.pinned && <Pin className="size-3 shrink-0 text-primary" />}
           <OriginBadge origin={item.origin} className="ml-auto h-4 px-1 text-[10px]" />

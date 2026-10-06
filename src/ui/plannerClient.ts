@@ -17,7 +17,8 @@ export function getPlanner(): Planner {
 
 // init() must run exactly once per worker, even under StrictMode's double effects.
 export function initPlanner(): Promise<void> {
-  ready ??= getPlanner().init();
+  // ?memory=1 forces the in-memory store, to check the "not being saved" banner by hand.
+  ready ??= getPlanner().init({ forceMemory: new URLSearchParams(window.location.search).get('memory') === '1' });
   return ready;
 }
 

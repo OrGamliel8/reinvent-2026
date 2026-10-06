@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import type { Result } from '@/core/types';
 import { usePlanner } from '../PlannerProvider';
 import { downloadText } from '../download';
+import { saveBackup } from '../backup';
 import { AgendaImportDialog } from './AgendaImportDialog';
 
 export function ExportControls({ agendaSize }: { agendaSize: number }): ReactNode {
@@ -21,10 +22,6 @@ export function ExportControls({ agendaSize }: { agendaSize: number }): ReactNod
 
   const exportAgenda = async (): Promise<void> => {
     downloadText(`reinvent-2026-agenda-${new Date().toLocaleDateString('en-CA')}.json`, await api.exportAgenda(), 'application/json');
-  };
-
-  const exportState = async (): Promise<void> => {
-    downloadText(`reinvent-planner-state-${new Date().toISOString().slice(0, 10)}.json`, await api.exportState(), 'application/json');
   };
 
   const importState = async (file: File): Promise<void> => {
@@ -59,7 +56,7 @@ export function ExportControls({ agendaSize }: { agendaSize: number }): ReactNod
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Full backup (profile + agenda)</DropdownMenuLabel>
-          <DropdownMenuItem onSelect={() => void exportState()}>
+          <DropdownMenuItem onSelect={() => void saveBackup(api)}>
             <Download /> Export full backup
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => fileInput.current?.click()}>

@@ -369,6 +369,16 @@ export interface PlannerApi {
   importAgenda(json: string, options: AgendaImportOptions): Result<AgendaImportReport>;
 }
 
+// Whether the user store survives a reload: false when OPFS is unavailable and the worker fell back to memory.
+export interface StorageStatus {
+  persistent: boolean;
+  reason: string | null;
+}
+
+export interface WorkerInitOptions {
+  forceMemory?: boolean; // skip OPFS and use the in-memory store (the UI sets it for ?memory=1)
+}
+
 // What src/worker/planner.worker.ts exposes via Comlink. `init()` loads the catalog snapshot
 // (/catalog.sqlite3) and the OPFS user store; it must resolve before any other call.
-export type WorkerApi = PlannerApi & { init(): Promise<void> };
+export type WorkerApi = PlannerApi & { init(options?: WorkerInitOptions): Promise<void>; storageStatus(): StorageStatus };

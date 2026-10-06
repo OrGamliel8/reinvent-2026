@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { CalendarX2 } from 'lucide-react';
+import { CalendarX2, Star } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useUi } from '../UiState';
@@ -72,6 +72,7 @@ function TimelineFooter({ data }: { data: TimelineData | undefined }): ReactNode
       <span className="hidden shrink-0 items-center gap-1.5 whitespace-nowrap @2xl:flex">
         shading = relevance
         <span className="ml-1.5 inline-block size-2.5 rounded-sm bg-primary" /> on agenda
+        <Star className="ml-1.5 size-3 fill-warning text-warning" /> starred
       </span>
     </footer>
   );
@@ -119,10 +120,11 @@ function TimelineBlock({ block }: { block: Block }): ReactNode {
   return (
     <button
       onClick={() => openSession(block.key)}
-      title={`${block.code} · ${block.title}\n${fmtRange(block.start, block.end)}`}
+      title={`${block.starred ? '★ ' : ''}${block.code} · ${block.title}\n${fmtRange(block.start, block.end)}`}
       className={cn(
         'absolute flex items-center overflow-hidden rounded-[4px] border px-1.5 text-left text-[11px] leading-none whitespace-nowrap hover:z-10 hover:ring-2 hover:ring-ring',
         block.onAgenda ? 'border-primary bg-primary font-medium text-primary-foreground' : 'border-transparent text-foreground',
+        block.starred && 'border-l-[3px] border-l-warning pl-1 ring-1 ring-warning/70',
       )}
       style={{
         left: x(block.startMin),
@@ -132,6 +134,7 @@ function TimelineBlock({ block }: { block: Block }): ReactNode {
         background: block.onAgenda ? undefined : `${color}${alpha}`,
       }}
     >
+      {block.starred && <Star aria-label="Starred" className="mr-0.5 size-3 shrink-0 fill-warning text-warning" />}
       <span className="mr-1 font-mono opacity-70">{block.code}</span>
       <span className="truncate">{block.title}</span>
     </button>

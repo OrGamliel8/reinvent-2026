@@ -9,6 +9,8 @@ import { fmtDateTime } from './format';
 import { ThemeToggle } from './ThemeToggle';
 import { SessionDrawer } from './SessionDrawer';
 import { AlertsDrawer } from './AlertsDrawer';
+import { BackupButton } from './BackupButton';
+import { StorageBanner } from './StorageBanner';
 import { AlternativesDialog } from './shared/AlternativesDialog';
 import { ExploreView } from './explore/ExploreView';
 import { AgendaView } from './agenda/AgendaView';
@@ -45,10 +47,12 @@ export function AppShell(): ReactNode {
         </TabsList>
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <CatalogFreshness />
+          <BackupButton />
           <AlertsBell />
           <ThemeToggle />
         </div>
       </header>
+      <StorageBanner />
       {TABS.map(({ id, view: View }) => (
         <TabsContent key={id} value={id} className="min-h-0 flex-1 overflow-hidden">
           <View />

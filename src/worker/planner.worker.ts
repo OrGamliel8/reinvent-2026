@@ -6,7 +6,7 @@ import { loadSqlite, type Sqlite3 } from '../core/sqlite';
 import { MemoryUserStore } from '../core/store/memoryUserStore';
 import { SqliteUserStore } from '../core/store/sqliteUserStore';
 import type { UserStore } from '../core/store/userStore';
-import type { PlannerApi, WorkerApi } from '../core/types';
+import type { PlannerApi, StorageStatus, WorkerApi, WorkerInitOptions } from '../core/types';
 
 const USER_DB = '/user.sqlite3';
 
@@ -59,35 +59,46 @@ const PLANNER_METHODS = {
 
 let planner: Planner | null = null;
 let initializing: Promise<void> | null = null;
+let storage: StorageStatus = { persistent: false, reason: 'The planner has not started yet.' };
 
-async function openUserStore(sqlite3: Sqlite3): Promise<UserStore> {
+async function openUserStore(sqlite3: Sqlite3, forceMemory: boolean): Promise<UserStore> {
+  if (forceMemory) {
+    storage = { persistent: false, reason: 'In-memory storage was forced with ?memory=1.' };
+    return new MemoryUserStore();
+  }
   try {
     const pool = await sqlite3.installOpfsSAHPoolVfs({ name: 'opfs-sahpool', directory: '/reinvent-planner' });
-    return new SqliteUserStore({ db: new pool.OpfsSAHPoolDb(USER_DB) });
+    const store = new SqliteUserStore({ db: new pool.OpfsSAHPoolDb(USER_DB) });
+    storage = { persistent: true, reason: null };
+    return store;
   } catch (error) {
     console.warn('OPFS storage is unavailable; your plan will not survive a reload.', error);
+    storage = { persistent: false, reason: error instanceof Error ? error.message : String(error) };
     return new MemoryUserStore();
   }
 }
 
-async function init(): Promise<void> {
+async function init(options: WorkerInitOptions): Promise<void> {
   const sqlite3 = await loadSqlite();
   const response = await fetch(`${import.meta.env.BASE_URL}catalog.sqlite3`);
   if (!response.ok) throw new Error(`Could not load the catalog snapshot (HTTP ${response.status})`);
   const catalog = CatalogRepository.open({ sqlite3, bytes: new Uint8Array(await response.arrayBuffer()) });
-  const opened = Planner.open({ catalog, store: await openUserStore(sqlite3) });
+  const opened = Planner.open({ catalog, store: await openUserStore(sqlite3, options.forceMemory ?? false) });
   opened.detectChanges();
   planner = opened;
 }
 
 const api: Record<string, unknown> = {
   // Idempotent; a failed init can be retried.
-  init(): Promise<void> {
-    initializing ??= init().catch((error: unknown) => {
+  init(options: WorkerInitOptions = {}): Promise<void> {
+    initializing ??= init(options).catch((error: unknown) => {
       initializing = null;
       throw error;
     });
     return initializing;
+  },
+  storageStatus(): StorageStatus {
+    return storage;
   },
 };
 

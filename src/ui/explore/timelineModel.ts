@@ -19,6 +19,7 @@ export interface Block {
   venue: VenueId;
   relevance: number; // 0..1
   onAgenda: boolean;
+  starred: boolean;
   row: number;
 }
 
@@ -61,6 +62,7 @@ export function buildLanes(ranked: RankedSession[], filters: Filters, day: DayId
         venue: slot.venue,
         relevance: Math.max(0, r.score) / maxScore,
         onAgenda: agendaSlots.has(slot.slotId),
+        starred: r.starred,
       });
     }
   }
