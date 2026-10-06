@@ -71,3 +71,7 @@ UI (React, src/ui)
 - `src/core/pipeline` turns the raw catalog JSON into the snapshot DB. It groups repeats (`-R`, `-R1`, …) into one session with several slots.
 - `scripts/` holds the Node CLIs: `refresh-data.ts`, `validate-profile.ts` and `vocabulary.ts`.
 - The UI uses shadcn/ui components (`src/components/ui`), Tailwind v4, TanStack Table and react-leaflet.
+
+## Deploying (GitHub Pages)
+
+Every push to `main` runs `.github/workflows/deploy.yml`: typecheck, tests, then `vite build` with `BASE_PATH=/<repo>/` and a Pages deploy. To publish a fresh catalog, run `npm run refresh-data`, commit `public/catalog.sqlite3`, and push. Each visitor's profile, agenda and scores stay in their own browser.

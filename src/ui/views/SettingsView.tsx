@@ -29,6 +29,7 @@ export function SettingsView(): ReactNode {
         <RecordedSection settings={data.settings} types={types} />
         <TravelSection travel={data.travel} />
         <ThemeSection />
+        <AboutSection />
       </div>
     </div>
   );
@@ -150,6 +151,23 @@ function ThemeSection(): ReactNode {
         <ToggleGroupItem value="dark">Dark</ToggleGroupItem>
         <ToggleGroupItem value="system">System</ToggleGroupItem>
       </ToggleGroup>
+    </section>
+  );
+}
+
+function AboutSection(): ReactNode {
+  return (
+    <section className="space-y-2 text-xs text-muted-foreground">
+      <SectionTitle>About</SectionTitle>
+      <p>
+        Session data comes from the community catalog at{' '}
+        <a className="underline hover:text-foreground" href="https://reinvent-planner.cloud/" target="_blank" rel="noreferrer">
+          reinvent-planner.cloud
+        </a>
+        , thanks to its maintainer. This planner is an unofficial personal project, not affiliated with or endorsed by AWS. Always confirm times and
+        reservations in the official re:Invent portal.
+      </p>
+      <p>Your profile, agenda and scores stay in this browser; nothing is sent anywhere.</p>
     </section>
   );
 }

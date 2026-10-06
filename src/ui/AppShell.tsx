@@ -82,7 +82,11 @@ function CatalogFreshness(): ReactNode {
             <span className="hidden md:inline lg:hidden xl:inline">{sessions}</span>
           </button>
         </TooltipTrigger>
-        <TooltipContent>{full}</TooltipContent>
+        <TooltipContent>
+          {full}
+          <br />
+          Data: reinvent-planner.cloud community catalog (unofficial)
+        </TooltipContent>
       </Tooltip>
     </>
   );
