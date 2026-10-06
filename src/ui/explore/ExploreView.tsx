@@ -6,6 +6,7 @@ import { usePlannerQuery } from '../PlannerProvider';
 import { ExploreFiltersProvider, useExploreFilters } from './ExploreFilters';
 import { FilterPanel } from './FilterPanel';
 import { SessionsList } from './SessionsList';
+import { StartHere } from './StartHere';
 import { TimelineControls, TimelineView } from './TimelineView';
 import { useTimelineSettings } from './useTimeline';
 import { readPref, writePref } from './prefs';
@@ -44,6 +45,7 @@ function ExploreLayout(): ReactNode {
     <div className="flex h-full">
       {vocabulary && sidebarOpen && <FilterPanel vocabulary={vocabulary} filters={filters} onChange={setFilters} query={query} onQueryChange={setQuery} />}
       <div className="@container flex min-w-0 flex-1 flex-col">
+        <StartHere />
         <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-2 py-1.5">
           <Button
             size="sm"
