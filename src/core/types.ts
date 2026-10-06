@@ -289,6 +289,20 @@ export interface ChangeAlert {
   after: SlotFingerprint | null;
 }
 
+export interface AgendaImportOptions {
+  mode: 'replace' | 'merge'; // replace = clear agenda and stars first; merge = imported item wins for a session already on the agenda
+  includeBlocks: boolean;
+}
+
+export interface AgendaImportReport {
+  added: number;
+  replaced: number; // merge: sessions already on the agenda whose item changed (identical items are not counted)
+  movedToOtherSlot: { code: string; title: string; from: string; to: string }[];
+  skipped: { code: string; title: string; reason: string }[];
+  starred: number;
+  blocks: number;
+}
+
 export interface IcsOptions {
   includePersonal: boolean;
 }
@@ -345,6 +359,8 @@ export interface PlannerApi {
   exportIcs(options: IcsOptions): string;
   exportState(): string;
   importState(json: string): Result<null>;
+  exportAgenda(): string; // agenda, stars and personal blocks only (no profile or settings)
+  importAgenda(json: string, options: AgendaImportOptions): Result<AgendaImportReport>;
 }
 
 // What src/worker/planner.worker.ts exposes via Comlink. `init()` loads the catalog snapshot

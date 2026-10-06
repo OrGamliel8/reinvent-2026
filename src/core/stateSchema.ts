@@ -62,3 +62,31 @@ export const StateSchema = z.object({
   dismissedAlerts: z.array(z.string()),
   tbaWatch: z.array(z.string()),
 });
+
+// Schema of the exportAgenda/importAgenda payload (agenda, stars and personal blocks only).
+export const AGENDA_KIND = 'reinvent-planner-agenda';
+
+export const AgendaExportSchema = z.object({
+  kind: z.literal(AGENDA_KIND),
+  version: z.literal(1),
+  exportedAt: z.string(),
+  items: z.array(
+    z.object({
+      sessionKey: z.string().min(1),
+      code: z.string(),
+      title: z.string(),
+      slotId: z.string(),
+      start: z.string().nullable(),
+      end: z.string().nullable(),
+      venue: venueId.nullable(),
+      room: z.string().nullable(),
+      pinned: z.boolean(),
+      origin: AgendaItemSchema.shape.origin,
+      reservation: AgendaItemSchema.shape.reservation,
+    }),
+  ),
+  starred: z.array(z.object({ sessionKey: z.string().min(1), code: z.string(), title: z.string() })),
+  blocks: z.array(PersonalBlockSchema),
+});
+
+export type AgendaExport = z.infer<typeof AgendaExportSchema>;

@@ -60,7 +60,7 @@ export function AgendaView(): ReactNode {
             {unscheduled > 0 && ` · ${unscheduled} without a time`}
           </span>
           <div className="ml-auto flex items-center gap-2">
-            <ExportControls />
+            <ExportControls agendaSize={data?.agenda.length ?? 0} />
             <Button
               size="sm"
               variant={panelOpen ? 'secondary' : 'ghost'}

@@ -51,6 +51,8 @@ const PLANNER_METHODS = {
   exportIcs: true,
   exportState: true,
   importState: true,
+  exportAgenda: true,
+  importAgenda: true,
 } satisfies Record<keyof PlannerApi, true>;
 
 let planner: Planner | null = null;

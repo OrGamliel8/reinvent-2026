@@ -1,6 +1,6 @@
 // Feasibility rules shared by slotFit, conflicts, auto-build and change detection.
 import { travelMinutes, venueName } from '../defaults';
-import { lvParts, lvToUtc, toMinutes } from '../time';
+import { lvDay, lvParts, lvToUtc, lvTime, toMinutes } from '../time';
 import { DAYS, type ConflictKind, type DayId, type PersonalBlock, type Profile, type Slot, type SlotFingerprint, type SlotFit, type TravelTable, type VenueId } from '../types';
 
 export interface TimedEvent {
@@ -51,6 +51,13 @@ export function blockEvent(block: PersonalBlock): TimedEvent | null {
 export function fingerprintOf(slot: Slot | null): SlotFingerprint {
   if (!slot) return { start: null, end: null, venue: null, room: null, exists: false };
   return { start: slot.start, end: slot.end, venue: slot.venue, room: slot.room, exists: true };
+}
+
+// "Wed Dec 2 15:00–16:00, Venetian, Room 1" (or "TBA").
+export function describeSlot(fp: Pick<SlotFingerprint, 'start' | 'end' | 'venue' | 'room'>): string {
+  if (!fp.start || !fp.end) return 'TBA';
+  const day = DAYS.find((d) => d.id === lvDay(fp.start!))?.label ?? '';
+  return `${day} ${lvTime(fp.start)}–${lvTime(fp.end)}, ${venueName(fp.venue)}${fp.room ? `, ${fp.room}` : ''}`;
 }
 
 export function sameFingerprint(a: SlotFingerprint, b: SlotFingerprint): boolean {

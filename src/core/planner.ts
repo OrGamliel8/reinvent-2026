@@ -1,18 +1,20 @@
 // Planner core: the single deep module the UI talks to. Opened with a Catalog Repository and a User Store.
 import type { CatalogRepository } from './catalog/catalogRepository';
 import { DEFAULT_RECORDED, DEFAULT_SETTINGS, DEFAULT_TRAVEL, HANDS_ON_TYPES, KEYNOTE_PRESETS, travelKey, venueName } from './defaults';
+import { buildAgendaExport, importBlocks, resolveAgendaImport } from './planning/agendaTransfer';
 import { autoBuild } from './planning/autoBuild';
 import { buildIcs } from './planning/ics';
 import { scoreSessions, type ScoredSession } from './planning/ranking';
-import { blockEvent, findProblems, fingerprintOf, fitOf, sameFingerprint, slotEvent, type PlanningContext, type TimedEvent } from './planning/schedule';
+import { blockEvent, describeSlot, findProblems, fingerprintOf, fitOf, sameFingerprint, slotEvent, type PlanningContext, type TimedEvent } from './planning/schedule';
 import { buildCopyPrompt, buildDraftPrompt } from './profile/copyPrompt';
 import { draftFromProfile, profileFromDraft } from './profile/draft';
 import { defaultProfile, parseJson, parseProfileJson, toValidationErrors, validateProfile } from './profile/schema';
-import { PersonalBlockSchema, SettingsSchema, STATE_KIND, StateSchema } from './stateSchema';
+import { AgendaExportSchema, PersonalBlockSchema, SettingsSchema, STATE_KIND, StateSchema } from './stateSchema';
 import { restoreStore, snapshotStore, type UserStore } from './store/userStore';
-import { lvDay, lvTime } from './time';
+import { lvTime } from './time';
 import {
-  DAYS,
+  type AgendaImportOptions,
+  type AgendaImportReport,
   type AgendaItem,
   type Alternative,
   type AutoBuildResult,
@@ -513,6 +515,35 @@ export class Planner implements PlannerApi {
     return { ok: true, value: null };
   }
 
+  exportAgenda(): string {
+    const payload = buildAgendaExport({ catalog: this.catalog, items: this.agenda(), stars: this.store.getStars(), blocks: this.store.getBlocks() });
+    return JSON.stringify(payload, null, 2);
+  }
+
+  // Never touches the profile or settings.
+  importAgenda(json: string, options: AgendaImportOptions): Result<AgendaImportReport> {
+    const raw = parseJson(json);
+    if (!raw.ok) return raw;
+    const parsed = AgendaExportSchema.safeParse(raw.value);
+    if (!parsed.success) return { ok: false, errors: toValidationErrors(parsed.error) };
+
+    const replace = options.mode === 'replace';
+    const { items, stars, report } = resolveAgendaImport({ catalog: this.catalog, payload: parsed.data, existing: replace ? [] : this.store.getItems(), newId });
+    this.store.replaceItems(items);
+    for (const item of items) this.watchTba(item.sessionKey, false);
+    if (replace) for (const key of this.store.getStars()) this.unstar(key);
+    for (const key of stars) this.star(key);
+
+    let blocks = 0;
+    if (options.includeBlocks) {
+      const { put, remove } = importBlocks({ existing: this.store.getBlocks(), imported: parsed.data.blocks, mode: options.mode, newId });
+      for (const id of remove) this.store.deleteBlock(id);
+      for (const block of put) this.store.putBlock(block);
+      blocks = put.length;
+    }
+    return { ok: true, value: { ...report, blocks } };
+  }
+
   // ---------- Helpers ----------
 
   private ctx(): PlanningContext {
@@ -613,12 +644,6 @@ function sortRanked(list: RankedSession[], sort: NonNullable<Filters['sort']>): 
 
 function fingerprintKey(fp: SlotFingerprint): string {
   return [fp.start, fp.end, fp.venue, fp.room].map((v) => v ?? '').join('|');
-}
-
-function describeSlot(fp: SlotFingerprint): string {
-  if (!fp.start || !fp.end) return 'TBA';
-  const day = DAYS.find((d) => d.id === lvDay(fp.start!))?.label ?? '';
-  return `${day} ${lvTime(fp.start)}–${lvTime(fp.end)}, ${venueName(fp.venue)}${fp.room ? `, ${fp.room}` : ''}`;
 }
 
 function describeMove(before: SlotFingerprint, after: SlotFingerprint): string {
