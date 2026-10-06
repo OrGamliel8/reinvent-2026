@@ -35,7 +35,7 @@ export const HANDS_ON_TYPES = new Set(['Workshop', "Builders' session", 'Lab', '
 
 export const DEFAULT_SETTINGS: Settings = {
   weights: { text: 1, tags: 0.6, level: 0.2, format: 0.3 },
-  theme: 'system',
+  theme: 'light',
   recorded: DEFAULT_RECORDED,
 };
 

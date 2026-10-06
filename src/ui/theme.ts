@@ -7,9 +7,9 @@ const STORAGE_KEY = 'planner-theme';
 export function storedTheme(): Theme {
   try {
     const value = localStorage.getItem(STORAGE_KEY);
-    return value === 'light' || value === 'dark' ? value : 'system';
+    return value === 'dark' || value === 'system' ? value : 'light';
   } catch {
-    return 'system';
+    return 'light';
   }
 }
 
