@@ -1,5 +1,8 @@
 // Shared contracts between the Planner core and the UI.
 // The UI talks ONLY to the `PlannerApi` below (through a Web Worker proxy in the browser).
+import type { SharedPlan } from './stateSchema';
+
+export type { SharedPlan };
 
 export type DayId = 'mon' | 'tue' | 'wed' | 'thu' | 'fri';
 export const DAYS: { id: DayId; date: string; label: string }[] = [
@@ -311,6 +314,100 @@ export interface IcsOptions {
   includePersonal: boolean;
 }
 
+// ---------- Profiles library & sharing ----------
+
+export type ProfileEntryKind = 'mine' | 'friend';
+
+// A saved profile. 'mine' entries are snapshots of my own profile (plan = null); 'friend' entries come from a friend's
+// shared plan (or a plain agenda file, which has no profile).
+export interface ProfileEntry {
+  id: string;
+  name: string;
+  kind: ProfileEntryKind;
+  profile: Profile | null;
+  plan: SharedPlan | null;
+  updatedAt: string; // ISO
+  sourceId: string | null; // the sharer's browser id, so a newer file from the same friend updates this entry
+}
+
+export interface ProfileEntrySummary {
+  id: string;
+  name: string;
+  kind: ProfileEntryKind;
+  updatedAt: string;
+  active: boolean; // the entry last activated (or saved)
+  hasProfile: boolean;
+  hasPlan: boolean;
+  agendaCount: number;
+  starCount: number;
+}
+
+// ---------- Compare ----------
+
+export const ME = 'me'; // person id of my live state in compare()
+
+export interface CompareProfileSummary {
+  topInterests: string[];
+  topics: string[];
+  level: { min: number; max: number } | null;
+  days: DayId[];
+}
+
+export interface ComparePerson {
+  id: string; // ME or a profile entry id
+  name: string;
+  profileSummary: CompareProfileSummary;
+  agendaCount: number; // items resolved against the current catalog
+  missing: { code: string; title: string }[]; // items that no longer resolve (session gone or TBA now)
+}
+
+export interface CompareSession {
+  sessionKey: string;
+  code: string; // session code
+  title: string;
+}
+
+// A session in the slot it resolved to in the current catalog.
+export interface CompareSlotted extends CompareSession {
+  slotId: string;
+  slotCode: string;
+  day: DayId;
+  start: string; // ISO
+  end: string;
+  venue: VenueId | null;
+}
+
+// One person's resolved agenda item.
+export interface ComparePlacement extends CompareSlotted {
+  personId: string;
+}
+
+// together = another person is in the same slot; split = someone else in the row is at a different session; solo = alone in the row
+export type CompareCellStatus = 'together' | 'split' | 'solo';
+
+export interface CompareCell extends CompareSession {
+  slotId: string;
+  slotCode: string;
+  venue: VenueId | null;
+  status: CompareCellStatus;
+}
+
+export interface CompareRow {
+  start: string; // ISO, earliest start of the row's sessions
+  end: string; // ISO, latest end
+  cells: Record<string, CompareCell | null>; // person id -> session, null = free
+}
+
+export interface CompareResult {
+  people: ComparePerson[];
+  days: { day: DayId; rows: CompareRow[] }[];
+  together: (CompareSlotted & { personIds: string[] })[]; // same session and slot for 2+ people
+  sameSessionDifferentSlot: (CompareSession & { placements: ComparePlacement[] })[];
+  split: { start: string; end: string; entries: { personId: string; sessionKey: string; slotId: string; title: string; venue: VenueId | null }[] }[];
+  onlyOne: Record<string, CompareSlotted[]>; // person id -> sessions nobody else has
+  starredByOthers: (CompareSession & { personIds: string[]; slotId: string | null })[]; // slotId: the first person's slot, or null if only starred
+}
+
 // The single deep module the UI talks to. All methods are synchronous inside the worker;
 // through the Comlink proxy the UI sees them as Promises.
 export interface PlannerApi {
@@ -367,6 +464,23 @@ export interface PlannerApi {
   importState(json: string): Result<null>;
   exportAgenda(): string; // agenda, stars, manual scores and personal blocks only (no profile or settings)
   importAgenda(json: string, options: AgendaImportOptions): Result<AgendaImportReport>;
+
+  // Profiles library. Activating an entry swaps the active profile only; the agenda stays intact.
+  profiles(): ProfileEntrySummary[];
+  saveProfileAs(name: string): ProfileEntrySummary;
+  parseProfile(json: string): Result<Profile>; // validates only, does not save
+  // Makes an incoming profile (import or builder) the active one without losing the current one. 'new' saves it as a
+  // new entry named `name` (de-duplicated); 'replace' overwrites the active entry and keeps the old profile as "<name> (previous)".
+  importProfileAs(profile: Profile, options: { mode: 'new' | 'replace'; name?: string }): Result<ProfileEntrySummary>;
+  activateProfile(id: string): void;
+  renameProfile(id: string, name: string): void;
+  duplicateProfile(id: string): ProfileEntrySummary;
+  deleteProfile(id: string): void;
+
+  // Sharing: my profile + plan for friends; importing a friend's file never touches my profile or agenda.
+  exportSharedPlan(displayName: string): string;
+  importSharedPlan(json: string, nameOverride?: string): Result<ProfileEntrySummary>; // also accepts a plain agenda export (name required)
+  compare(personIds: string[]): CompareResult; // ME = my live state; other ids are entries with a plan
 }
 
 // Where the user store lives: 'persistent' = OPFS (survives reloads); 'memory' = OPFS unavailable or ?memory=1;

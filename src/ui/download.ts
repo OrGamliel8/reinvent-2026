@@ -7,3 +7,8 @@ export function downloadText(filename: string, text: string, mime: string): void
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+
+// "Alice's AI plan" -> "alice-s-ai-plan", for file names.
+export function slugify(name: string, fallback: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || fallback;
+}

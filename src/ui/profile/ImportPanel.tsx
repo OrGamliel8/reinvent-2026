@@ -1,29 +1,27 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { FileUp } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import type { Profile, Result, ValidationError } from '@/core/types';
+import type { ValidationError } from '@/core/types';
 import { usePlanner } from '../PlannerProvider';
+import { errorMessage } from '../plannerClient';
+import { useIncomingProfile } from './library/useIncomingProfile';
 import { ValidationErrors } from './ValidationErrors';
 
 export function ImportPanel({ onImported }: { onImported?: () => void } = {}): ReactNode {
-  const { mutate } = usePlanner();
+  const { api } = usePlanner();
   const [text, setText] = useState('');
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
+  const { offer, dialog } = useIncomingProfile(() => {
+    setText('');
+    onImported?.();
+  });
 
   const importJson = async (json: string): Promise<void> => {
-    const result = await mutate<Result<Profile>>((api) => api.importProfile(json));
-    if (!result) return;
-    if (result.ok) {
-      setErrors([]);
-      setText('');
-      toast.success(`Imported profile "${result.value.name}"`);
-      onImported?.();
-    } else {
-      setErrors(result.errors);
-    }
+    const result = await api.parseProfile(json).catch((error: unknown) => ({ ok: false as const, errors: [{ path: '', message: errorMessage(error) }] }));
+    setErrors(result.ok ? [] : result.errors);
+    if (result.ok) await offer(result.value);
   };
 
   return (
@@ -56,6 +54,7 @@ export function ImportPanel({ onImported }: { onImported?: () => void } = {}): R
         }}
       />
       <ValidationErrors errors={errors} title="The profile is invalid" />
+      {dialog}
     </div>
   );
 }

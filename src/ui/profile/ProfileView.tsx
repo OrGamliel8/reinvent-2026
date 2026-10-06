@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Profile, Vocabulary } from '@/core/types';
 import { usePlanner, usePlannerQuery } from '../PlannerProvider';
-import { downloadText } from '../download';
+import { downloadText, slugify } from '../download';
 import { EmptyState, SectionTitle } from '../shared/EmptyState';
 import { ProfileBuilder } from './builder/ProfileBuilder';
+import { ComparePanel } from './compare/ComparePanel';
+import { ProfilesPanel } from './library/ProfilesPanel';
 import { ImportPanel } from './ImportPanel';
 import { ProfileEditor } from './ProfileEditor';
 
@@ -30,6 +32,8 @@ export function ProfileView(): ReactNode {
           <TabsList>
             <TabsTrigger value="builder">Builder</TabsTrigger>
             <TabsTrigger value="active">Edit active profile</TabsTrigger>
+            <TabsTrigger value="profiles">Profiles</TabsTrigger>
+            <TabsTrigger value="compare">Compare</TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value="builder">
@@ -37,6 +41,12 @@ export function ProfileView(): ReactNode {
         </TabsContent>
         <TabsContent value="active">
           <ActiveProfile profile={profile} vocabulary={vocabulary} onBuild={() => setTab('builder')} />
+        </TabsContent>
+        <TabsContent value="profiles">
+          <ProfilesPanel hasProfile={profile !== null} />
+        </TabsContent>
+        <TabsContent value="compare">
+          <ComparePanel onAddFriends={() => setTab('profiles')} />
         </TabsContent>
       </Tabs>
     </div>
@@ -83,9 +93,8 @@ function ActiveProfile({ profile, vocabulary, onBuild }: { profile: Profile | nu
 
 function ExportProfileButton({ name }: { name: string }): ReactNode {
   const { api } = usePlanner();
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'profile';
   return (
-    <Button size="sm" variant="outline" onClick={() => void api.exportProfile().then((json) => downloadText(`${slug}.json`, json, 'application/json'))}>
+    <Button size="sm" variant="outline" onClick={() => void api.exportProfile().then((json) => downloadText(`${slugify(name, 'profile')}.json`, json, 'application/json'))}>
       <Download /> Export profile JSON
     </Button>
   );

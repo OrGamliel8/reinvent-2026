@@ -51,6 +51,74 @@ export const PersonalBlockSchema = z
 
 export const ManualScoreSchema = z.number().int().min(0).max(100);
 
+// Schema of the exportAgenda/importAgenda payload (agenda, stars and personal blocks only).
+export const AGENDA_KIND = 'reinvent-planner-agenda';
+
+const ExportedItemsSchema = z.array(
+  z.object({
+    sessionKey: z.string().min(1),
+    code: z.string(),
+    title: z.string(),
+    slotId: z.string(),
+    start: z.string().nullable(),
+    end: z.string().nullable(),
+    venue: venueId.nullable(),
+    room: z.string().nullable(),
+    pinned: z.boolean(),
+    origin: AgendaItemSchema.shape.origin,
+    reservation: AgendaItemSchema.shape.reservation,
+  }),
+);
+const ExportedStarsSchema = z.array(z.object({ sessionKey: z.string().min(1), code: z.string(), title: z.string() }));
+const ExportedScoresSchema = z.array(z.object({ sessionKey: z.string().min(1), code: z.string(), title: z.string(), score: ManualScoreSchema }));
+
+export const AgendaExportSchema = z.object({
+  kind: z.literal(AGENDA_KIND),
+  version: z.literal(1),
+  exportedAt: z.string(),
+  items: ExportedItemsSchema,
+  starred: ExportedStarsSchema,
+  scores: ExportedScoresSchema.optional(),
+  blocks: z.array(PersonalBlockSchema),
+});
+
+export type AgendaExport = z.infer<typeof AgendaExportSchema>;
+
+// What a profile entry keeps of someone's plan: the agenda-export items, stars and manual scores.
+export const SharedPlanSchema = z.object({
+  exportedAt: z.string(),
+  items: ExportedItemsSchema,
+  starred: ExportedStarsSchema,
+  scores: ExportedScoresSchema,
+});
+
+export type SharedPlan = z.infer<typeof SharedPlanSchema>;
+
+export const ProfileEntrySchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  kind: z.enum(['mine', 'friend']),
+  profile: ProfileSchema.nullable(),
+  plan: SharedPlanSchema.nullable(),
+  updatedAt: z.string(),
+  sourceId: z.string().nullable(),
+});
+
+// Schema of the exportSharedPlan/importSharedPlan payload: one person's profile and plan, sent to friends.
+export const SHARED_PLAN_KIND = 'reinvent-planner-shared-plan';
+
+export const SharedPlanExportSchema = z.object({
+  kind: z.literal(SHARED_PLAN_KIND),
+  version: z.literal(1),
+  sourceId: z.string().min(1),
+  displayName: z.string().trim().min(1),
+  exportedAt: z.string(),
+  profile: ProfileSchema.nullable(),
+  items: ExportedItemsSchema,
+  starred: ExportedStarsSchema,
+  scores: ExportedScoresSchema.default([]),
+});
+
 export const StateSchema = z.object({
   kind: z.literal(STATE_KIND),
   version: z.literal(1),
@@ -64,33 +132,8 @@ export const StateSchema = z.object({
   blocks: z.array(PersonalBlockSchema),
   dismissedAlerts: z.array(z.string()),
   tbaWatch: z.array(z.string()),
+  // optional: exports from before the profiles library
+  profiles: z.array(ProfileEntrySchema).optional(),
+  activeProfileId: z.string().nullable().optional(),
+  shareSourceId: z.string().nullable().optional(),
 });
-
-// Schema of the exportAgenda/importAgenda payload (agenda, stars and personal blocks only).
-export const AGENDA_KIND = 'reinvent-planner-agenda';
-
-export const AgendaExportSchema = z.object({
-  kind: z.literal(AGENDA_KIND),
-  version: z.literal(1),
-  exportedAt: z.string(),
-  items: z.array(
-    z.object({
-      sessionKey: z.string().min(1),
-      code: z.string(),
-      title: z.string(),
-      slotId: z.string(),
-      start: z.string().nullable(),
-      end: z.string().nullable(),
-      venue: venueId.nullable(),
-      room: z.string().nullable(),
-      pinned: z.boolean(),
-      origin: AgendaItemSchema.shape.origin,
-      reservation: AgendaItemSchema.shape.reservation,
-    }),
-  ),
-  starred: z.array(z.object({ sessionKey: z.string().min(1), code: z.string(), title: z.string() })),
-  scores: z.array(z.object({ sessionKey: z.string().min(1), code: z.string(), title: z.string(), score: ManualScoreSchema })).optional(),
-  blocks: z.array(PersonalBlockSchema),
-});
-
-export type AgendaExport = z.infer<typeof AgendaExportSchema>;

@@ -2,28 +2,26 @@ import { useState, type ReactNode } from 'react';
 import { ClipboardCopy, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import type { Profile, ProfileDraft, Result, ValidationError } from '@/core/types';
+import type { ProfileDraft, ValidationError } from '@/core/types';
 import { usePlanner } from '../../PlannerProvider';
 import { copyText } from '../../shared/CopyButton';
 import { ImportPanel } from '../ImportPanel';
+import { useIncomingProfile } from '../library/useIncomingProfile';
 import { ValidationErrors } from '../ValidationErrors';
 
 export function BuilderActions({ draft, onImported }: { draft: ProfileDraft; onImported: () => void }): ReactNode {
-  const { api, mutate } = usePlanner();
+  const { api } = usePlanner();
   const [errors, setErrors] = useState<ValidationError[]>([]);
+  const { offer, dialog } = useIncomingProfile();
 
   const copyPrompt = async (): Promise<void> => {
     if (await copyText(await api.copyPrompt(draft))) toast.success('Prompt copied', { description: 'Paste into Claude, then paste the JSON below.' });
   };
 
   const applyDraft = async (): Promise<void> => {
-    const result = await mutate<Result<Profile>>(async (planner) => {
-      const built = await planner.profileFromDraft(draft);
-      return built.ok ? planner.updateProfile(built.value) : built;
-    });
-    if (!result) return;
-    setErrors(result.ok ? [] : result.errors);
-    if (result.ok) toast.success('Profile saved', { description: 'Sessions are now ranked by your picks.' });
+    const built = await api.profileFromDraft(draft);
+    setErrors(built.ok ? [] : built.errors);
+    if (built.ok) await offer(built.value);
   };
 
   return (
@@ -39,7 +37,7 @@ export function BuilderActions({ draft, onImported }: { draft: ProfileDraft; onI
         </div>
         <p className="text-xs text-muted-foreground">
           <strong className="font-medium text-foreground">Copy prompt</strong> bakes your choices into a prompt; Claude adds rich interests and keywords.{' '}
-          <strong className="font-medium text-foreground">Use without Claude</strong> saves a profile from your picks right away (it replaces the active profile's interests).
+          <strong className="font-medium text-foreground">Use without Claude</strong> saves a profile from your picks right away; you choose whether it replaces your active profile or becomes a new one.
         </p>
         <ValidationErrors errors={errors} title="Not saved — fix these fields" />
       </div>
@@ -47,6 +45,7 @@ export function BuilderActions({ draft, onImported }: { draft: ProfileDraft; onI
         <h3 className="text-sm font-medium">Paste Claude's JSON</h3>
         <ImportPanel onImported={onImported} />
       </div>
+      {dialog}
     </div>
   );
 }

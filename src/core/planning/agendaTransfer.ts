@@ -4,7 +4,7 @@ import { AGENDA_KIND, type AgendaExport } from '../stateSchema';
 import type { AgendaImportReport, AgendaItem, PersonalBlock, Slot } from '../types';
 import { describeSlot, fingerprintOf, sameFingerprint } from './schedule';
 
-type ExportedItem = AgendaExport['items'][number];
+export type ExportedItem = AgendaExport['items'][number];
 
 export function buildAgendaExport({
   catalog,
@@ -119,7 +119,7 @@ function sameItem(a: AgendaItem, b: AgendaItem): boolean {
 }
 
 // Same slot (by id, then short code); else the session's timed slot closest to the exported start; else a skip reason.
-function resolveSlot(catalog: CatalogRepository, entry: ExportedItem): { slot: Slot; moved: boolean } | string {
+export function resolveSlot(catalog: CatalogRepository, entry: ExportedItem): { slot: Slot; moved: boolean } | string {
   const session = catalog.session(entry.sessionKey);
   const same = [catalog.slot(entry.slotId), session?.slots.find((s) => s.code === entry.code)].find((s) => s?.start);
   if (same) return { slot: same, moved: false };

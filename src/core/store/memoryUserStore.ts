@@ -1,4 +1,4 @@
-import type { AgendaItem, PersonalBlock, Profile, Settings, TravelTable } from '../types';
+import type { AgendaItem, PersonalBlock, Profile, ProfileEntry, Settings, TravelTable } from '../types';
 import type { UserStore } from './userStore';
 
 // In-memory User Store (tests, and the fallback when OPFS is unavailable). Values are cloned on the way in and out.
@@ -12,6 +12,9 @@ export class MemoryUserStore implements UserStore {
   private blocks = new Map<string, PersonalBlock>();
   private dismissed = new Set<string>();
   private tbaWatch: string[] = [];
+  private profileEntries = new Map<string, ProfileEntry>();
+  private activeProfileId: string | null = null;
+  private shareSourceId: string | null = null;
   private seeded = false;
 
   getProfile(): Profile | null {
@@ -88,6 +91,30 @@ export class MemoryUserStore implements UserStore {
     this.tbaWatch = [...sessionKeys];
   }
 
+  getProfileEntries(): ProfileEntry[] {
+    return clone([...this.profileEntries.values()]);
+  }
+  putProfileEntry(entry: ProfileEntry): void {
+    this.profileEntries.set(entry.id, clone(entry));
+  }
+  deleteProfileEntry(id: string): void {
+    this.profileEntries.delete(id);
+  }
+
+  getActiveProfileId(): string | null {
+    return this.activeProfileId;
+  }
+  setActiveProfileId(id: string | null): void {
+    this.activeProfileId = id;
+  }
+
+  getShareSourceId(): string | null {
+    return this.shareSourceId;
+  }
+  setShareSourceId(id: string): void {
+    this.shareSourceId = id;
+  }
+
   isSeeded(): boolean {
     return this.seeded;
   }
@@ -105,6 +132,9 @@ export class MemoryUserStore implements UserStore {
     this.blocks.clear();
     this.dismissed.clear();
     this.tbaWatch = [];
+    this.profileEntries.clear();
+    this.activeProfileId = null;
+    this.shareSourceId = null;
     this.seeded = false;
   }
 }

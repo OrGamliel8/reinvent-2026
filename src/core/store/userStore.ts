@@ -1,5 +1,5 @@
 // User Store: everything the user owns. Two implementations: in-memory (tests) and SQLite (OPFS in the browser).
-import type { AgendaItem, PersonalBlock, Profile, Settings, TravelTable } from '../types';
+import type { AgendaItem, PersonalBlock, Profile, ProfileEntry, Settings, TravelTable } from '../types';
 
 export interface UserStore {
   getProfile(): Profile | null;
@@ -35,6 +35,15 @@ export interface UserStore {
   getTbaWatch(): string[];
   setTbaWatch(sessionKeys: string[]): void;
 
+  // Profiles library: saved profiles (mine and friends'), the entry last activated, and this browser's share id.
+  getProfileEntries(): ProfileEntry[];
+  putProfileEntry(entry: ProfileEntry): void;
+  deleteProfileEntry(id: string): void;
+  getActiveProfileId(): string | null;
+  setActiveProfileId(id: string | null): void;
+  getShareSourceId(): string | null;
+  setShareSourceId(id: string): void;
+
   // Set once the keynote presets have been created, so deleting them sticks.
   isSeeded(): boolean;
   markSeeded(): void;
@@ -54,6 +63,9 @@ export interface UserStoreSnapshot {
   blocks: PersonalBlock[];
   dismissedAlerts: string[];
   tbaWatch: string[];
+  profiles: ProfileEntry[];
+  activeProfileId: string | null;
+  shareSourceId: string | null;
 }
 
 export function snapshotStore(store: UserStore): UserStoreSnapshot {
@@ -67,6 +79,9 @@ export function snapshotStore(store: UserStore): UserStoreSnapshot {
     blocks: store.getBlocks(),
     dismissedAlerts: store.getDismissedAlerts(),
     tbaWatch: store.getTbaWatch(),
+    profiles: store.getProfileEntries(),
+    activeProfileId: store.getActiveProfileId(),
+    shareSourceId: store.getShareSourceId(),
   };
 }
 
@@ -81,5 +96,8 @@ export function restoreStore(store: UserStore, snapshot: UserStoreSnapshot): voi
   for (const block of snapshot.blocks) store.putBlock(block);
   for (const id of snapshot.dismissedAlerts) store.addDismissedAlert(id);
   store.setTbaWatch(snapshot.tbaWatch);
+  for (const entry of snapshot.profiles) store.putProfileEntry(entry);
+  store.setActiveProfileId(snapshot.activeProfileId);
+  if (snapshot.shareSourceId) store.setShareSourceId(snapshot.shareSourceId);
   store.markSeeded();
 }

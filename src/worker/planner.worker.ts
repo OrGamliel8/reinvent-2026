@@ -67,6 +67,17 @@ const PLANNER_METHODS = {
   importState: true,
   exportAgenda: true,
   importAgenda: true,
+  profiles: true,
+  saveProfileAs: true,
+  parseProfile: true,
+  importProfileAs: true,
+  activateProfile: true,
+  renameProfile: true,
+  duplicateProfile: true,
+  deleteProfile: true,
+  exportSharedPlan: true,
+  importSharedPlan: true,
+  compare: true,
 } satisfies Record<keyof PlannerApi, true>;
 
 let sqlite3: Sqlite3;

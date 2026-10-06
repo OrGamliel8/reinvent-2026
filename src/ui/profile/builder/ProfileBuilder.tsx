@@ -34,22 +34,7 @@ export function ProfileBuilder({ vocabulary, recorded }: { vocabulary: Vocabular
             <RotateCcw /> Reset to active profile
           </Button>
         </div>
-        <AboutSection {...props} />
-        <Section step={2} title="Topics" hint="Click a topic to select it, then set how much it matters.">
-          <WeightChips options={vocabulary.topics} value={draft.topics} onChange={(topics) => update({ topics })} />
-        </Section>
-        <ServicesSection {...props} />
-        <Section step={4} title="Level range" hint="100 foundational · 200 intermediate · 300 advanced · 400 expert · 500 distinguished">
-          <LevelRange {...props} />
-        </Section>
-        <Section step={5} title="Formats" hint="Recorded formats can be watched later, so unrecorded ones are preferred by default.">
-          <FormatChoices types={vocabulary.types} recorded={recorded} value={draft.formats} onChange={(formats) => update({ formats })} />
-        </Section>
-        <Section step={6} title="Availability" hint="Days you attend, in Las Vegas local time.">
-          <AvailabilityFields availability={draft.availability} onChange={(availability) => update({ availability })} />
-        </Section>
-        <AvoidSection {...props} />
-        <Section step={8} title="In your own words">
+        <Section step={1} title="In your own words">
           <Label htmlFor="builder-free-text" className="text-sm font-normal text-muted-foreground">
             Describe what you want from re:Invent in your own words
           </Label>
@@ -62,6 +47,21 @@ export function ProfileBuilder({ vocabulary, recorded }: { vocabulary: Vocabular
             className="text-sm"
           />
         </Section>
+        <AboutSection {...props} />
+        <Section step={3} title="Topics" hint="Click a topic to select it, then set how much it matters.">
+          <WeightChips options={vocabulary.topics} value={draft.topics} onChange={(topics) => update({ topics })} />
+        </Section>
+        <ServicesSection {...props} />
+        <Section step={5} title="Level range" hint="100 foundational · 200 intermediate · 300 advanced · 400 expert · 500 distinguished">
+          <LevelRange {...props} />
+        </Section>
+        <Section step={6} title="Formats" hint="Recorded formats can be watched later, so unrecorded ones are preferred by default.">
+          <FormatChoices types={vocabulary.types} recorded={recorded} value={draft.formats} onChange={(formats) => update({ formats })} />
+        </Section>
+        <Section step={7} title="Availability" hint="Days you attend, in Las Vegas local time.">
+          <AvailabilityFields availability={draft.availability} onChange={(availability) => update({ availability })} />
+        </Section>
+        <AvoidSection {...props} />
       </div>
       <aside className="lg:sticky lg:top-4 lg:self-start">
         <Section step={9} title="Generate your profile">
@@ -89,7 +89,7 @@ function Section({ step, title, hint, children }: { step: number; title: string;
 
 function AboutSection({ draft, update, vocabulary }: SectionProps): ReactNode {
   return (
-    <Section step={1} title="About you">
+    <Section step={2} title="About you">
       <div className="space-y-1.5">
         <Label htmlFor="builder-name" className="text-xs">
           Profile name
@@ -112,7 +112,7 @@ function ServicesSection({ draft, update, vocabulary }: SectionProps): ReactNode
   const selected = Object.keys(draft.services);
   const pick = (names: string[]): void => update({ services: Object.fromEntries(names.map((n): [string, DraftWeight] => [n, draft.services[n] ?? 'high'])) });
   return (
-    <Section step={3} title="Services" hint="Search the catalog's AWS services; set a weight for each one you pick.">
+    <Section step={4} title="Services" hint="Search the catalog's AWS services; set a weight for each one you pick.">
       <MultiSelect label="Services" options={toOptions(vocabulary.services)} selected={selected} onChange={pick} className="w-56" />
       {selected.length > 0 && <WeightChips options={selected} value={draft.services} onChange={(services) => update({ services })} />}
     </Section>
@@ -135,7 +135,7 @@ function AvoidSection({ draft, update, vocabulary }: SectionProps): ReactNode {
   const avoid = draft.avoid;
   const set = (patch: Partial<ProfileDraft['avoid']>): void => update({ avoid: { ...avoid, ...patch } });
   return (
-    <Section step={7} title="Avoid" hint="Sessions matching any of these are left out of the ranking.">
+    <Section step={8} title="Avoid" hint="Sessions matching any of these are left out of the ranking.">
       <div className="space-y-1.5">
         <Label className="text-xs">Keywords</Label>
         <ListInput key={avoid.keywords.join('|')} value={avoid.keywords} onChange={(keywords) => set({ keywords })} placeholder="e.g. mainframe, blockchain" />

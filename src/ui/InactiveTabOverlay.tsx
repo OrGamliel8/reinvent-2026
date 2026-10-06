@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 export function InactiveTabOverlay({ onUseHere }: { onUseHere: () => Promise<void> }): ReactNode {
   const [pending, setPending] = useState(false);
 
-  const useHere = async (): Promise<void> => {
+  const takeOver = async (): Promise<void> => {
     setPending(true);
     try {
       await onUseHere();
@@ -23,7 +23,7 @@ export function InactiveTabOverlay({ onUseHere }: { onUseHere: () => Promise<voi
           The planner is open in another tab.
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">Changes are saved there.</p>
-        <Button className="mt-5" autoFocus disabled={pending} onClick={() => void useHere()}>
+        <Button className="mt-5" autoFocus disabled={pending} onClick={() => void takeOver()}>
           {pending ? 'Switching…' : 'Use here'}
         </Button>
       </div>

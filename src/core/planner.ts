@@ -3,16 +3,20 @@ import type { CatalogRepository } from './catalog/catalogRepository';
 import { DEFAULT_RECORDED, DEFAULT_SETTINGS, DEFAULT_TRAVEL, HANDS_ON_TYPES, KEYNOTE_PRESETS, travelKey, venueName } from './defaults';
 import { buildAgendaExport, importBlocks, resolveAgendaImport } from './planning/agendaTransfer';
 import { autoBuild } from './planning/autoBuild';
+import { buildCompare, type ComparePlan } from './planning/compare';
 import { buildIcs } from './planning/ics';
 import { applyManualScores, scoreSessions, type ScoredSession } from './planning/ranking';
+import { buildSharedPlanExport, parseSharedPlan } from './planning/sharing';
 import { blockEvent, describeSlot, findProblems, fingerprintOf, fitOf, sameFingerprint, slotEvent, type PlanningContext, type TimedEvent } from './planning/schedule';
 import { buildCopyPrompt, buildDraftPrompt } from './profile/copyPrompt';
 import { draftFromProfile, profileFromDraft } from './profile/draft';
+import { uniqueName } from './profile/uniqueName';
 import { defaultProfile, parseJson, parseProfileJson, toValidationErrors, validateProfile } from './profile/schema';
-import { AgendaExportSchema, PersonalBlockSchema, SettingsSchema, STATE_KIND, StateSchema } from './stateSchema';
+import { AgendaExportSchema, PersonalBlockSchema, SettingsSchema, STATE_KIND, StateSchema, type AgendaExport } from './stateSchema';
 import { restoreStore, snapshotStore, type UserStore } from './store/userStore';
 import { lvTime } from './time';
 import {
+  ME,
   type AgendaImportOptions,
   type AgendaImportReport,
   type AgendaItem,
@@ -21,6 +25,7 @@ import {
   type CatalogMeta,
   type ChangeAlert,
   type ChecklistItem,
+  type CompareResult,
   type Conflict,
   type Filters,
   type IcsOptions,
@@ -28,6 +33,8 @@ import {
   type PlannerApi,
   type Profile,
   type ProfileDraft,
+  type ProfileEntry,
+  type ProfileEntrySummary,
   type RankedSession,
   type ReservationStatus,
   type Result,
@@ -527,21 +534,21 @@ export class Planner implements PlannerApi {
     if (!raw.ok) return raw;
     const parsed = StateSchema.safeParse(raw.value);
     if (!parsed.success) return { ok: false, errors: toValidationErrors(parsed.error) };
-    const { profile, settings, travel, items, stars, manualScores = {}, blocks, dismissedAlerts, tbaWatch } = parsed.data;
-    restoreStore(this.store, { profile: profile as Profile | null, settings, travel, items, stars, manualScores, blocks, dismissedAlerts, tbaWatch });
+    const { profile, profiles = [], activeProfileId = null, shareSourceId, manualScores = {}, ...rest } = parsed.data;
+    restoreStore(this.store, {
+      ...rest,
+      profile: profile as Profile | null,
+      manualScores,
+      profiles: profiles as ProfileEntry[],
+      activeProfileId,
+      shareSourceId: shareSourceId ?? this.store.getShareSourceId(), // a backup from before sharing keeps this browser's id
+    });
     this.scoreCache = null;
     return { ok: true, value: null };
   }
 
   exportAgenda(): string {
-    const payload = buildAgendaExport({
-      catalog: this.catalog,
-      items: this.agenda(),
-      stars: this.store.getStars(),
-      manualScores: this.store.getManualScores(),
-      blocks: this.store.getBlocks(),
-    });
-    return JSON.stringify(payload, null, 2);
+    return JSON.stringify(this.agendaExport(), null, 2);
   }
 
   // Never touches the profile or settings.
@@ -570,7 +577,152 @@ export class Planner implements PlannerApi {
     return { ok: true, value: { ...report, blocks } };
   }
 
+  // ---------- Profiles library ----------
+
+  profiles(): ProfileEntrySummary[] {
+    const kindOrder = { mine: 0, friend: 1 };
+    return this.store
+      .getProfileEntries()
+      .sort((a, b) => kindOrder[a.kind] - kindOrder[b.kind] || a.name.localeCompare(b.name))
+      .map((entry) => this.summarize(entry));
+  }
+
+  saveProfileAs(name: string): ProfileEntrySummary {
+    const profile = this.store.getProfile();
+    if (!profile) throw new Error('There is no active profile to save yet');
+    const entry = this.putMine(name, profile);
+    this.store.setProfile(entry.profile);
+    this.store.setActiveProfileId(entry.id);
+    return this.summarize(entry);
+  }
+
+  parseProfile(json: string): Result<Profile> {
+    return parseProfileJson(json);
+  }
+
+  importProfileAs(incoming: Profile, { mode, name }: { mode: 'new' | 'replace'; name?: string }): Result<ProfileEntrySummary> {
+    const parsed = validateProfile(incoming);
+    if (!parsed.ok) return parsed;
+    const replaced = mode === 'replace' ? this.store.getProfile() : null;
+    const active = replaced ? this.store.getProfileEntries().find((e) => e.id === this.store.getActiveProfileId() && e.kind === 'mine') : undefined;
+    if (replaced) this.putMine(`${active?.name ?? replaced.name} (previous)`, replaced);
+    const entry = active ? this.putEntry({ ...active, profile: parsed.value }) : this.putMine(name?.trim() || parsed.value.name, parsed.value);
+    this.store.setProfile(entry.profile);
+    this.store.setActiveProfileId(entry.id);
+    return { ok: true, value: this.summarize(entry) };
+  }
+
+  // Swaps the active profile only; the agenda, stars and scores stay as they are.
+  activateProfile(id: string): void {
+    const entry = this.requireEntry(id);
+    if (!entry.profile) throw new Error(`${entry.name} has no profile (it came from an agenda file)`);
+    this.store.setProfile(entry.profile);
+    this.store.setActiveProfileId(id);
+  }
+
+  renameProfile(id: string, name: string): void {
+    this.putEntry({ ...this.requireEntry(id), name });
+  }
+
+  duplicateProfile(id: string): ProfileEntrySummary {
+    const { name, profile } = this.requireEntry(id);
+    if (!profile) throw new Error(`${name} has no profile to duplicate`);
+    return this.summarize(this.putMine(`${name} (copy)`, profile));
+  }
+
+  deleteProfile(id: string): void {
+    this.requireEntry(id);
+    this.store.deleteProfileEntry(id);
+    if (this.store.getActiveProfileId() === id) this.store.setActiveProfileId(null);
+  }
+
+  // ---------- Sharing & compare ----------
+
+  exportSharedPlan(displayName: string): string {
+    const name = displayName.trim();
+    if (!name) throw new Error('Enter a display name to share your plan');
+    const payload = buildSharedPlanExport({ agenda: this.agendaExport(), sourceId: this.shareSourceId(), displayName: name, profile: this.store.getProfile() });
+    return JSON.stringify(payload, null, 2);
+  }
+
+  // Creates or updates (same sourceId; for agenda files, same name) a friend entry. Never touches my profile or agenda.
+  importSharedPlan(json: string, nameOverride = ''): Result<ProfileEntrySummary> {
+    const override = nameOverride.trim();
+    const raw = parseJson(json);
+    if (!raw.ok) return raw;
+    const parsed = parseSharedPlan(raw.value, override);
+    if (!parsed.ok) return parsed;
+    const { sourceId, displayName, profile, plan } = parsed.value;
+    if (sourceId && sourceId === this.store.getShareSourceId()) return { ok: false, errors: [{ path: 'sourceId', message: 'This is your own shared plan' }] };
+
+    const existing = this.store
+      .getProfileEntries()
+      .find((e) => e.kind === 'friend' && (sourceId ? e.sourceId === sourceId : !e.sourceId && e.name === displayName));
+    const name = override || existing?.name || displayName;
+    return { ok: true, value: this.summarize(this.putEntry({ id: existing?.id ?? newId(), name, kind: 'friend', profile, plan, sourceId })) };
+  }
+
+  compare(personIds: string[]): CompareResult {
+    const entries = new Map(this.store.getProfileEntries().map((e) => [e.id, e]));
+    const mine = this.agendaExport();
+    const plans = [...new Set(personIds)].map((id): ComparePlan => {
+      if (id === ME) return { id, name: 'You', profile: this.store.getProfile(), items: mine.items, starred: mine.starred.map((s) => s.sessionKey) };
+      const entry = entries.get(id);
+      if (!entry) throw new Error(`Unknown profile: ${id}`);
+      if (!entry.plan) throw new Error(`${entry.name} has no shared plan to compare`);
+      return { id, name: entry.name, profile: entry.profile, items: entry.plan.items, starred: entry.plan.starred.map((s) => s.sessionKey) };
+    });
+    const mySessions = new Set([...mine.items.map((i) => i.sessionKey), ...this.store.getStars()]);
+    return buildCompare({ catalog: this.catalog, plans, mine: mySessions });
+  }
+
+  // The entry's profile carries the entry's name, so activating it shows that name.
+  private putEntry(entry: Omit<ProfileEntry, 'updatedAt'>): ProfileEntry {
+    const name = entry.name.trim();
+    if (!name) throw new Error('A profile name cannot be empty');
+    const saved = { ...entry, name, profile: entry.profile && { ...entry.profile, name }, updatedAt: new Date().toISOString() };
+    this.store.putProfileEntry(saved);
+    return saved;
+  }
+
+  // A new 'mine' entry; the name is de-duplicated against the library ("Work (2)").
+  private putMine(name: string, profile: Profile): ProfileEntry {
+    const taken = this.store.getProfileEntries().map((e) => e.name);
+    return this.putEntry({ id: newId(), name: uniqueName(name, taken), kind: 'mine', profile, plan: null, sourceId: null });
+  }
+
+  private summarize(entry: ProfileEntry): ProfileEntrySummary {
+    const { id, name, kind, updatedAt, profile, plan } = entry;
+    const active = this.store.getActiveProfileId() === id;
+    return { id, name, kind, updatedAt, active, hasProfile: !!profile, hasPlan: !!plan, agendaCount: plan?.items.length ?? 0, starCount: plan?.starred.length ?? 0 };
+  }
+
+  private requireEntry(id: string): ProfileEntry {
+    const entry = this.store.getProfileEntries().find((e) => e.id === id);
+    if (!entry) throw new Error(`Unknown profile: ${id}`);
+    return entry;
+  }
+
+  // Generated once per browser, so a friend's import of my newer file updates the same entry.
+  private shareSourceId(): string {
+    const existing = this.store.getShareSourceId();
+    if (existing) return existing;
+    const id = newId();
+    this.store.setShareSourceId(id);
+    return id;
+  }
+
   // ---------- Helpers ----------
+
+  private agendaExport(): AgendaExport {
+    return buildAgendaExport({
+      catalog: this.catalog,
+      items: this.agenda(),
+      stars: this.store.getStars(),
+      manualScores: this.store.getManualScores(),
+      blocks: this.store.getBlocks(),
+    });
+  }
 
   private ctx(): PlanningContext {
     return { travel: this.travelTable(), availability: this.store.getProfile()?.availability ?? null };
