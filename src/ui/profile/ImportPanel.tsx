@@ -1,12 +1,13 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { FileUp } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { Profile, Result, ValidationError } from '@/core/types';
 import { usePlanner } from '../PlannerProvider';
 import { ValidationErrors } from './ValidationErrors';
 
-export function ImportPanel(): ReactNode {
+export function ImportPanel({ onImported }: { onImported?: () => void } = {}): ReactNode {
   const { mutate } = usePlanner();
   const [text, setText] = useState('');
   const [errors, setErrors] = useState<ValidationError[]>([]);
@@ -18,6 +19,8 @@ export function ImportPanel(): ReactNode {
     if (result.ok) {
       setErrors([]);
       setText('');
+      toast.success(`Imported profile "${result.value.name}"`);
+      onImported?.();
     } else {
       setErrors(result.errors);
     }
@@ -25,11 +28,21 @@ export function ImportPanel(): ReactNode {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Button size="sm" variant="outline" onClick={() => fileInput.current?.click()}>
+      <Textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={5}
+        placeholder='{ "version": 1, "name": "…", … }'
+        aria-label="Profile JSON"
+        className="max-h-48 font-mono text-xs"
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" disabled={!text.trim()} onClick={() => void importJson(text)}>
+          Import profile
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => fileInput.current?.click()}>
           <FileUp /> Import JSON file…
         </Button>
-        <span className="text-xs text-muted-foreground">or paste it below</span>
       </div>
       <input
         ref={fileInput}
@@ -42,10 +55,6 @@ export function ImportPanel(): ReactNode {
           if (file) await importJson(await file.text());
         }}
       />
-      <Textarea value={text} onChange={(e) => setText(e.target.value)} rows={5} placeholder='{ "version": 1, "name": "…", … }' className="max-h-48 font-mono text-xs" />
-      <Button size="sm" disabled={!text.trim()} onClick={() => void importJson(text)}>
-        Import pasted profile
-      </Button>
       <ValidationErrors errors={errors} title="The profile is invalid" />
     </div>
   );

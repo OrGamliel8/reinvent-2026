@@ -20,6 +20,8 @@ const PLANNER_METHODS = {
   exportProfile: true,
   updateProfile: true,
   copyPrompt: true,
+  profileDraft: true,
+  profileFromDraft: true,
   rank: true,
   explain: true,
   agenda: true,

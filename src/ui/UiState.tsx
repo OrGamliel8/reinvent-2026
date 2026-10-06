@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 
-export type TabId = 'sessions' | 'timeline' | 'agenda' | 'map' | 'reservations' | 'profile' | 'settings';
+export type TabId = 'explore' | 'agenda' | 'map' | 'reservations' | 'profile' | 'settings';
 
 export interface AlternativesRequest {
   ref: { slotId: string } | { sessionKey: string };
@@ -22,7 +22,7 @@ interface UiContextValue {
 const UiContext = createContext<UiContextValue | null>(null);
 
 export function UiProvider({ children }: { children: ReactNode }): ReactNode {
-  const [tab, setTab] = useState<TabId>('sessions');
+  const [tab, setTab] = useState<TabId>('explore');
   const [sessionKey, openSession] = useState<string | null>(null);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const [alternatives, openAlternatives] = useState<AlternativesRequest | null>(null);

@@ -60,6 +60,8 @@ export const ProfileSchema = z
         lunch: { start: '12:00', end: '13:00' },
         maxPerDay: 6,
       }),
+    roles: names.optional().describe('Catalog roles that describe the user. Context only.'),
+    industries: names.optional().describe('Catalog industries the user works in. Context only.'),
   })
   .strict();
 

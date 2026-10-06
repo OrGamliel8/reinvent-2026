@@ -143,4 +143,18 @@ describe('ranking', () => {
     expect(ranked).toHaveLength(20);
     expect(ranked.every((r) => r.score >= 0 && r.explanation.interests.length === 0)).toBe(true);
   });
+  it('keeps scores spread out when a profile picks many high-weight topics and services', async () => {
+    const { planner } = await openPlanner({ profile: null });
+    const draft = {
+      ...planner.profileDraft(),
+      topics: { 'Artificial Intelligence': 'high', 'Security & Identity': 'high', Analytics: 'high' },
+      services: { 'Amazon Bedrock': 'high', 'Amazon GuardDuty': 'high', 'AWS Security Hub': 'high', 'Amazon Athena': 'high' },
+    } as const;
+    const result = planner.profileFromDraft(draft);
+    if (!result.ok) throw new Error(JSON.stringify(result.errors));
+    planner.updateProfile(result.value);
+    const scores = planner.rank({}).map((r) => r.score);
+    expect(scores[0]).toBeLessThan(99);
+    expect(scores.filter((score) => score === scores[0])).toHaveLength(1);
+  });
 });

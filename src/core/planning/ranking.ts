@@ -8,10 +8,14 @@ export interface ScoredSession {
   relevant: boolean; // matched at least one interest or weighted tag (auto-build only suggests these)
 }
 
+const TEXT_RATE = 1;
+const TAG_RATE = 0.7;
+
 const round1 = (n: number): number => Math.round(n * 10) / 10;
 
-// Soft OR: combining independent matches in 0..1 without exceeding 1.
-const softOr = (values: number[]): number => 1 - values.reduce((acc, v) => acc * (1 - Math.min(1, Math.max(0, v))), 1);
+// Combines several matches into 0..1 with diminishing returns: one perfect match ≈ half credit, more matches climb toward 1
+// without bunching many sessions at the top (a plain soft-OR saturated after two or three strong matches).
+const saturate = (values: number[], rate: number): number => 1 - Math.exp(-rate * values.reduce((sum, v) => sum + Math.max(0, v), 0));
 
 export function isRecorded(type: string, settings: Settings): boolean {
   return settings.recorded[type] ?? false;
@@ -41,11 +45,11 @@ export function scoreSessions({ catalog, profile, settings }: { catalog: Catalog
         strength: interest.weight * (max > 0 ? (totals.get(session.key) ?? 0) / max : 0),
       }))
       .filter((m) => m.strength > 0);
-    const textTotal = scale * weights.text * softOr(matched.map((m) => m.strength));
+    const textTotal = scale * weights.text * saturate(matched.map((m) => m.strength), TEXT_RATE);
     const strengthSum = matched.reduce((sum, m) => sum + m.strength, 0);
 
     const tags = tagMatches(session, profile);
-    const tagTotal = scale * weights.tags * softOr(tags.map((t) => t.weight));
+    const tagTotal = scale * weights.tags * saturate(tags.map((t) => t.weight), TAG_RATE);
 
     const level = levelFit(session, profile);
     const levelContribution = scale * weights.level * level.value;

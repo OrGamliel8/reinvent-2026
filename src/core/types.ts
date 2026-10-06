@@ -106,6 +106,30 @@ export interface Profile {
     lunch: DayWindow | null;
     maxPerDay: number;
   };
+  roles?: string[]; // catalog roles, context only (not used for ranking)
+  industries?: string[]; // catalog industries, context only
+}
+
+// ---------- Profile builder ----------
+
+export type DraftWeight = 'high' | 'medium' | 'low';
+export const DRAFT_WEIGHTS: Record<DraftWeight, number> = { high: 1, medium: 0.6, low: 0.3 };
+
+export type FormatChoice = 'prefer' | 'neutral' | 'avoid';
+export const FORMAT_CHOICES: Record<FormatChoice, number> = { prefer: 1, neutral: 0, avoid: -1 };
+
+// The guided builder's choices. Turned into a Profile deterministically (profileFromDraft) or baked into the copy prompt.
+export interface ProfileDraft {
+  name: string;
+  roles: string[]; // catalog roles
+  level: { min: number; max: number };
+  topics: Record<string, DraftWeight>; // catalog topic -> weight
+  services: Record<string, DraftWeight>; // catalog service -> weight
+  formats: Record<string, FormatChoice>; // session type -> preference
+  industries: string[]; // catalog industries, context only
+  availability: Profile['availability'];
+  avoid: Profile['avoid'];
+  freeText: string; // the user's own words
 }
 
 export interface ValidationError {
@@ -280,7 +304,9 @@ export interface PlannerApi {
   importProfile(json: string): Result<Profile>;
   exportProfile(): string;
   updateProfile(profile: Profile): Result<Profile>;
-  copyPrompt(): string;
+  copyPrompt(draft?: ProfileDraft): string; // with a draft: bakes the builder's choices in as fixed fields
+  profileDraft(): ProfileDraft; // builder pre-fill from the active profile (or defaults)
+  profileFromDraft(draft: ProfileDraft): Result<Profile>; // deterministic, no LLM; does not save
 
   rank(filters: Filters): RankedSession[];
   explain(sessionKey: string): RankedSession | null;

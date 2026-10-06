@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Bell, CalendarDays, Info, CalendarRange, ClipboardCheck, List, Map as MapIcon, Settings as SettingsIcon, UserRound } from 'lucide-react';
+import { Bell, CalendarDays, Compass, Info, ClipboardCheck, Map as MapIcon, Settings as SettingsIcon, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -10,17 +10,15 @@ import { ThemeToggle } from './ThemeToggle';
 import { SessionDrawer } from './SessionDrawer';
 import { AlertsDrawer } from './AlertsDrawer';
 import { AlternativesDialog } from './shared/AlternativesDialog';
-import { SessionsView } from './views/SessionsView';
-import { TimelineView } from './views/TimelineView';
+import { ExploreView } from './explore/ExploreView';
 import { AgendaView } from './agenda/AgendaView';
 import { MapView } from './views/MapView';
 import { ReservationsView } from './views/ReservationsView';
 import { ProfileView } from './profile/ProfileView';
 import { SettingsView } from './views/SettingsView';
 
-const TABS: { id: TabId; label: string; icon: typeof List; view: () => ReactNode }[] = [
-  { id: 'sessions', label: 'Sessions', icon: List, view: SessionsView },
-  { id: 'timeline', label: 'Timeline', icon: CalendarRange, view: TimelineView },
+const TABS: { id: TabId; label: string; icon: typeof Compass; view: () => ReactNode }[] = [
+  { id: 'explore', label: 'Explore', icon: Compass, view: ExploreView },
   { id: 'agenda', label: 'My Agenda', icon: CalendarDays, view: AgendaView },
   { id: 'map', label: 'Map', icon: MapIcon, view: MapView },
   { id: 'reservations', label: 'Reservations', icon: ClipboardCheck, view: ReservationsView },

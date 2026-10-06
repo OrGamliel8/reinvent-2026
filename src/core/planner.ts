@@ -5,7 +5,8 @@ import { autoBuild } from './planning/autoBuild';
 import { buildIcs } from './planning/ics';
 import { scoreSessions, type ScoredSession } from './planning/ranking';
 import { blockEvent, findProblems, fingerprintOf, fitOf, sameFingerprint, slotEvent, type PlanningContext, type TimedEvent } from './planning/schedule';
-import { buildCopyPrompt } from './profile/copyPrompt';
+import { buildCopyPrompt, buildDraftPrompt } from './profile/copyPrompt';
+import { draftFromProfile, profileFromDraft } from './profile/draft';
 import { defaultProfile, parseJson, parseProfileJson, toValidationErrors, validateProfile } from './profile/schema';
 import { PersonalBlockSchema, SettingsSchema, STATE_KIND, StateSchema } from './stateSchema';
 import { restoreStore, snapshotStore, type UserStore } from './store/userStore';
@@ -24,6 +25,7 @@ import {
   type PersonalBlock,
   type PlannerApi,
   type Profile,
+  type ProfileDraft,
   type RankedSession,
   type ReservationStatus,
   type Result,
@@ -92,8 +94,16 @@ export class Planner implements PlannerApi {
     return JSON.stringify(this.store.getProfile() ?? defaultProfile(), null, 2);
   }
 
-  copyPrompt(): string {
-    return buildCopyPrompt(this.catalog.vocabulary());
+  copyPrompt(draft?: ProfileDraft): string {
+    return draft ? buildDraftPrompt(this.catalog.vocabulary(), draft) : buildCopyPrompt(this.catalog.vocabulary());
+  }
+
+  profileDraft(): ProfileDraft {
+    return draftFromProfile(this.store.getProfile(), this.catalog.vocabulary(), this.settings().recorded);
+  }
+
+  profileFromDraft(draft: ProfileDraft): Result<Profile> {
+    return profileFromDraft(draft);
   }
 
   private saveProfile(result: Result<Profile>): Result<Profile> {

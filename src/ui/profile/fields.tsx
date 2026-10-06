@@ -1,11 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
-import type { DayWindow } from '@/core/types';
+import { DAYS, type DayId, type DayWindow, type Profile } from '@/core/types';
 
 // Comma- or newline-separated list, parsed on blur so typing commas feels natural.
 export function ListInput({ value, onChange, placeholder, rows = 2 }: { value: string[]; onChange: (v: string[]) => void; placeholder?: string; rows?: number }): ReactNode {
@@ -75,6 +77,77 @@ export function WindowInput({ value, onChange }: { value: DayWindow; onChange: (
       <Input type="time" value={value.start} onChange={(e) => onChange({ ...value, start: e.target.value })} className="h-7 w-24 px-1.5 text-xs" />
       <span className="text-xs text-muted-foreground">–</span>
       <Input type="time" value={value.end} onChange={(e) => onChange({ ...value, end: e.target.value })} className="h-7 w-24 px-1.5 text-xs" />
+    </div>
+  );
+}
+
+const DEFAULT_WINDOW: DayWindow = { start: '08:00', end: '18:00' };
+const DEFAULT_LUNCH: DayWindow = { start: '12:00', end: '13:00' };
+
+export function LevelSelect({ levels, value, onChange, label }: { levels: number[]; value: number; onChange: (v: number) => void; label?: string }): ReactNode {
+  return (
+    <Select value={String(value)} onValueChange={(v) => onChange(Number(v))}>
+      <SelectTrigger size="sm" className="w-20 text-xs" aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {levels.map((l) => (
+          <SelectItem key={l} value={String(l)}>
+            {l}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+type Availability = Profile['availability'];
+
+export function AvailabilityFields({ availability, onChange }: { availability: Availability; onChange: (v: Availability) => void }): ReactNode {
+  const setDay = (day: DayId, window: DayWindow | undefined): void => {
+    const days = { ...availability.days };
+    if (window) days[day] = window;
+    else delete days[day];
+    onChange({ ...availability, days });
+  };
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        {DAYS.map((d) => {
+          const window = availability.days[d.id];
+          return (
+            <div key={d.id} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <label className="flex w-32 items-center gap-2 text-sm">
+                <Checkbox checked={!!window} onCheckedChange={(c) => setDay(d.id, c === true ? DEFAULT_WINDOW : undefined)} />
+                {d.label}
+              </label>
+              {window ? <WindowInput value={window} onChange={(w) => setDay(d.id, w)} /> : <span className="text-xs text-muted-foreground">Not attending</span>}
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <label className="flex w-32 items-center gap-2 text-sm">
+          <Checkbox checked={!!availability.lunch} onCheckedChange={(c) => onChange({ ...availability, lunch: c === true ? DEFAULT_LUNCH : null })} />
+          Lunch break
+        </label>
+        {availability.lunch ? (
+          <WindowInput value={availability.lunch} onChange={(lunch) => onChange({ ...availability, lunch })} />
+        ) : (
+          <span className="text-xs text-muted-foreground">No lunch break kept free</span>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        <Label className="w-32 text-sm font-normal">Max per day</Label>
+        <Input
+          type="number"
+          min={1}
+          max={20}
+          value={availability.maxPerDay}
+          onChange={(e) => onChange({ ...availability, maxPerDay: Number(e.target.value) })}
+          className="h-7 w-20 text-xs"
+        />
+      </div>
     </div>
   );
 }

@@ -1,20 +1,15 @@
 import { useState, type ReactNode } from 'react';
 import { Plus, RotateCcw, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { DAYS, type DayId, type Interest, type Profile, type Result, type ValidationError, type Vocabulary } from '@/core/types';
+import { type Interest, type Profile, type Result, type ValidationError, type Vocabulary } from '@/core/types';
 import { usePlanner } from '../PlannerProvider';
 import { MultiSelect, toOptions } from '../shared/MultiSelect';
 import { SectionTitle } from '../shared/EmptyState';
-import { ListInput, WeightMapEditor, WindowInput } from './fields';
+import { AvailabilityFields, LevelSelect, ListInput, WeightMapEditor } from './fields';
 import { ValidationErrors } from './ValidationErrors';
-
-const LEVELS = [100, 200, 300, 400, 500];
-const DEFAULT_WINDOW = { start: '08:00', end: '18:00' };
 
 export function ProfileEditor({ profile, vocabulary }: { profile: Profile; vocabulary: Vocabulary }): ReactNode {
   const { mutate } = usePlanner();
@@ -30,7 +25,7 @@ export function ProfileEditor({ profile, vocabulary }: { profile: Profile; vocab
 
   return (
     <div className="space-y-8">
-      <div className="sticky top-0 z-10 -mx-6 flex items-center gap-2 border-b bg-background/95 px-6 py-2 backdrop-blur">
+      <div className="sticky top-0 z-10 -mx-4 flex flex-wrap items-center gap-2 border-b bg-background/95 px-4 py-2 sm:-mx-6 sm:px-6 backdrop-blur">
         <Input value={draft.name} onChange={(e) => set({ name: e.target.value })} className="h-8 max-w-xs font-medium" aria-label="Profile name" />
         <div className="ml-auto flex gap-2">
           <Button size="sm" variant="ghost" disabled={!dirty} onClick={() => setDraft(profile)}>
@@ -59,9 +54,9 @@ export function ProfileEditor({ profile, vocabulary }: { profile: Profile; vocab
         <SectionTitle>Level & formats</SectionTitle>
         <div className="flex items-center gap-2 text-sm">
           Level
-          <LevelSelect value={draft.level.min} onChange={(min) => set({ level: { ...draft.level, min } })} />
+          <LevelSelect levels={vocabulary.levels} value={draft.level.min} onChange={(min) => set({ level: { ...draft.level, min } })} />
           to
-          <LevelSelect value={draft.level.max} onChange={(max) => set({ level: { ...draft.level, max } })} />
+          <LevelSelect levels={vocabulary.levels} value={draft.level.max} onChange={(max) => set({ level: { ...draft.level, max } })} />
         </div>
         <p className="text-xs text-muted-foreground">Format preference: −1 avoid … +1 prefer.</p>
         <WeightMapEditor value={draft.formats} onChange={(formats) => set({ formats })} options={vocabulary.types} min={-1} max={1} addLabel="Add a format…" />
@@ -78,25 +73,11 @@ export function ProfileEditor({ profile, vocabulary }: { profile: Profile; vocab
         </div>
       </section>
 
-      <AvailabilitySection availability={draft.availability} onChange={(availability) => set({ availability })} />
+      <section className="space-y-3">
+        <SectionTitle>Availability</SectionTitle>
+        <AvailabilityFields availability={draft.availability} onChange={(availability) => set({ availability })} />
+      </section>
     </div>
-  );
-}
-
-function LevelSelect({ value, onChange }: { value: number; onChange: (v: number) => void }): ReactNode {
-  return (
-    <Select value={String(value)} onValueChange={(v) => onChange(Number(v))}>
-      <SelectTrigger size="sm" className="w-20 text-xs">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {LEVELS.map((l) => (
-          <SelectItem key={l} value={String(l)}>
-            {l}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
   );
 }
 
@@ -126,52 +107,6 @@ function InterestsSection({ interests, onChange }: { interests: Interest[]; onCh
           <ListInput value={interest.keywords} onChange={(keywords) => update(index, { keywords })} placeholder="Keywords and synonyms, comma-separated" />
         </div>
       ))}
-    </section>
-  );
-}
-
-function AvailabilitySection({ availability, onChange }: { availability: Profile['availability']; onChange: (v: Profile['availability']) => void }): ReactNode {
-  const setDay = (day: DayId, window: Profile['availability']['days'][DayId] | undefined): void => {
-    const days = { ...availability.days };
-    if (window) days[day] = window;
-    else delete days[day];
-    onChange({ ...availability, days });
-  };
-  return (
-    <section className="space-y-3">
-      <SectionTitle>Availability</SectionTitle>
-      <div className="space-y-1.5">
-        {DAYS.map((d) => {
-          const window = availability.days[d.id];
-          return (
-            <div key={d.id} className="flex items-center gap-3">
-              <label className="flex w-32 items-center gap-2 text-sm">
-                <Checkbox checked={!!window} onCheckedChange={(c) => setDay(d.id, c === true ? DEFAULT_WINDOW : undefined)} />
-                {d.label}
-              </label>
-              {window ? <WindowInput value={window} onChange={(w) => setDay(d.id, w)} /> : <span className="text-xs text-muted-foreground">Not attending</span>}
-            </div>
-          );
-        })}
-      </div>
-      <div className="flex items-center gap-3">
-        <label className="flex w-32 items-center gap-2 text-sm">
-          <Checkbox checked={!!availability.lunch} onCheckedChange={(c) => onChange({ ...availability, lunch: c === true ? { start: '12:00', end: '13:00' } : null })} />
-          Lunch
-        </label>
-        {availability.lunch && <WindowInput value={availability.lunch} onChange={(lunch) => onChange({ ...availability, lunch })} />}
-      </div>
-      <div className="flex items-center gap-3">
-        <Label className="w-32 text-sm font-normal">Max per day</Label>
-        <Input
-          type="number"
-          min={1}
-          max={20}
-          value={availability.maxPerDay}
-          onChange={(e) => onChange({ ...availability, maxPerDay: Number(e.target.value) })}
-          className="h-7 w-20 text-xs"
-        />
-      </div>
     </section>
   );
 }
