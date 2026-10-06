@@ -1,8 +1,8 @@
 import { VENUES, type PersonalBlock, type Settings, type TravelTable, type VenueId } from './types';
 
 export const SOURCE_URL = 'https://reinvent-planner.cloud/api/aws/reinvent/2026/catalog';
-// Official catalog search; ?search=<code> filters to that session (verified for 2026, repeat codes included), where it can be reserved.
-const PORTAL_SEARCH_URL = 'https://registration.awsevents.com/flow/awsevents/reinvent2026/eventcatalog/page/eventcatalog?search=';
+// Official (signed-in) catalog search; ?search=<code> filters to that session, where it can be reserved. Signed-out visitors are sent to the AWS sign-in first.
+const PORTAL_SEARCH_URL = 'https://registration.awsevents.com/flow/awsevents/reinvent2026/event-catalog/page/eventCatalog?search=';
 
 export function portalUrl(code: string): string {
   return PORTAL_SEARCH_URL + encodeURIComponent(code);

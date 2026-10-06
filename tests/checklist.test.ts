@@ -24,7 +24,7 @@ describe('reservation checklist', () => {
     expect(byCode.get('SEC401')).toMatchObject({
       type: 'Workshop',
       starred: true,
-      portalUrl: 'https://registration.awsevents.com/flow/awsevents/reinvent2026/eventcatalog/page/eventcatalog?search=SEC401',
+      portalUrl: 'https://registration.awsevents.com/flow/awsevents/reinvent2026/event-catalog/page/eventCatalog?search=SEC401',
     });
     expect(byCode.get('ANT319-R1')).toMatchObject({ type: 'Chalk talk', starred: false });
     expect(byCode.get('ANT319-R1')!.portalUrl).toMatch(/search=ANT319-R1$/);
