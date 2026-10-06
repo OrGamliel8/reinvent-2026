@@ -369,9 +369,10 @@ export interface PlannerApi {
   importAgenda(json: string, options: AgendaImportOptions): Result<AgendaImportReport>;
 }
 
-// Whether the user store survives a reload: false when OPFS is unavailable and the worker fell back to memory.
+// Where the user store lives: 'persistent' = OPFS (survives reloads); 'memory' = OPFS unavailable or ?memory=1;
+// 'inactive' = another tab owns the OPFS store, so this tab is read-only until the user clicks "Use here".
 export interface StorageStatus {
-  persistent: boolean;
+  mode: 'persistent' | 'memory' | 'inactive';
   reason: string | null;
 }
 
@@ -381,4 +382,11 @@ export interface WorkerInitOptions {
 
 // What src/worker/planner.worker.ts exposes via Comlink. `init()` loads the catalog snapshot
 // (/catalog.sqlite3) and the OPFS user store; it must resolve before any other call.
-export type WorkerApi = PlannerApi & { init(options?: WorkerInitOptions): Promise<void>; storageStatus(): StorageStatus };
+// watchStorage() registers the one listener for status changes and returns the current status; useHere() takes the store
+// back from another tab.
+export type WorkerApi = PlannerApi & {
+  init(options?: WorkerInitOptions): Promise<void>;
+  storageStatus(): StorageStatus;
+  watchStorage(listener: (status: StorageStatus) => void): StorageStatus;
+  useHere(): Promise<void>;
+};

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { DatabaseBackup, TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { usePlanner, usePlannerQuery } from './PlannerProvider';
+import { usePlanner } from './PlannerProvider';
 import { saveBackup } from './backup';
 
 const DISMISSED_KEY = 'planner-storage-banner-dismissed';
@@ -16,10 +16,9 @@ function readDismissed(): boolean {
 
 // Shown when the worker fell back to the in-memory store (private window, blocked site storage, or ?memory=1).
 export function StorageBanner(): ReactNode {
-  const { api } = usePlanner();
-  const { data: status } = usePlannerQuery((planner) => planner.storageStatus(), []);
+  const { api, storage: status } = usePlanner();
   const [dismissed, setDismissed] = useState(readDismissed);
-  if (!status || status.persistent || dismissed) return null;
+  if (status.mode !== 'memory' || dismissed) return null;
 
   const dismiss = (): void => {
     setDismissed(true);

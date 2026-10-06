@@ -1,10 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import * as Comlink from 'comlink';
 import { toast } from 'sonner';
+import type { StorageStatus } from '@/core/types';
+import { InactiveTabOverlay } from './InactiveTabOverlay';
 import { errorMessage, getPlanner, initPlanner, type Planner } from './plannerClient';
 
 interface PlannerContextValue {
   api: Planner;
   version: number;
+  storage: StorageStatus;
   // Run a mutation, then bump the version so every view refetches. Errors become toasts.
   mutate: <T>(fn: (api: Planner) => Promise<T>, successMessage?: string) => Promise<T | undefined>;
 }
@@ -17,17 +21,32 @@ export function PlannerProvider({ children }: { children: ReactNode }): ReactNod
   const api = getPlanner();
   const [init, setInit] = useState<InitState>({ status: 'loading' });
   const [version, setVersion] = useState(0);
+  const [storage, setStorage] = useState<StorageStatus>({ mode: 'memory', reason: null });
 
   useEffect(() => {
     let cancelled = false;
-    initPlanner().then(
-      () => !cancelled && setInit({ status: 'ready' }),
-      (error: unknown) => !cancelled && setInit({ status: 'error', message: errorMessage(error) }),
-    );
+    initPlanner()
+      .then(() => {
+        // The worker pushes ownership changes (another tab took over, or "Use here" took it back); every view refetches.
+        const onChange = (status: StorageStatus): void => {
+          if (cancelled) return;
+          setStorage(status);
+          setVersion((v) => v + 1);
+        };
+        return api.watchStorage(Comlink.proxy(onChange));
+      })
+      .then(
+        (status) => {
+          if (cancelled) return;
+          setStorage(status);
+          setInit({ status: 'ready' });
+        },
+        (error: unknown) => !cancelled && setInit({ status: 'error', message: errorMessage(error) }),
+      );
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [api]);
 
   const mutate = useCallback(
     async <T,>(fn: (api: Planner) => Promise<T>, successMessage?: string): Promise<T | undefined> => {
@@ -45,11 +64,24 @@ export function PlannerProvider({ children }: { children: ReactNode }): ReactNod
     [api],
   );
 
-  const value = useMemo(() => ({ api, version, mutate }), [api, version, mutate]);
+  const useHere = useCallback(async (): Promise<void> => {
+    try {
+      await api.useHere();
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
+  }, [api]);
+
+  const value = useMemo(() => ({ api, version, storage, mutate }), [api, version, storage, mutate]);
 
   if (init.status === 'loading') return <LoadingScreen />;
   if (init.status === 'error') return <ErrorScreen message={init.message} />;
-  return <PlannerContext.Provider value={value}>{children}</PlannerContext.Provider>;
+  return (
+    <PlannerContext.Provider value={value}>
+      {children}
+      {storage.mode === 'inactive' && <InactiveTabOverlay onUseHere={useHere} />}
+    </PlannerContext.Provider>
+  );
 }
 
 export function usePlanner(): PlannerContextValue {
