@@ -6,11 +6,12 @@ const SCHEMA = `
 CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS agenda_item (id TEXT PRIMARY KEY, session_key TEXT NOT NULL, slot_id TEXT NOT NULL, data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS star (session_key TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS manual_score (session_key TEXT PRIMARY KEY, score INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS personal_block (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS dismissed_alert (id TEXT PRIMARY KEY);
 `;
 
-const USER_SCHEMA_VERSION = 1;
+const USER_SCHEMA_VERSION = 2;
 
 // SQLite-backed User Store. In the browser the DB lives in OPFS (opfs-sahpool VFS); any oo1 DB works.
 export class SqliteUserStore implements UserStore {
@@ -71,6 +72,15 @@ export class SqliteUserStore implements UserStore {
     this.db.exec(sql, { bind: [sessionKey] });
   }
 
+  getManualScores(): Record<string, number> {
+    const rows = this.db.selectArrays('SELECT session_key, score FROM manual_score ORDER BY rowid');
+    return Object.fromEntries(rows.map(([key, score]) => [String(key), Number(score)]));
+  }
+  setManualScore(sessionKey: string, score: number | null): void {
+    if (score === null) this.db.exec('DELETE FROM manual_score WHERE session_key = ?', { bind: [sessionKey] });
+    else this.db.exec('INSERT INTO manual_score VALUES (?, ?) ON CONFLICT(session_key) DO UPDATE SET score = excluded.score', { bind: [sessionKey, score] });
+  }
+
   getBlocks(): PersonalBlock[] {
     return this.db.selectValues('SELECT data FROM personal_block ORDER BY rowid').map((v) => JSON.parse(String(v)) as PersonalBlock);
   }
@@ -105,7 +115,7 @@ export class SqliteUserStore implements UserStore {
   }
 
   clear(): void {
-    this.db.exec('DELETE FROM kv; DELETE FROM agenda_item; DELETE FROM star; DELETE FROM personal_block; DELETE FROM dismissed_alert;');
+    this.db.exec('DELETE FROM kv; DELETE FROM agenda_item; DELETE FROM star; DELETE FROM manual_score; DELETE FROM personal_block; DELETE FROM dismissed_alert;');
   }
 
   private getJson<T>(key: string): T | null {

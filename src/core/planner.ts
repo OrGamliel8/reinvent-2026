@@ -4,7 +4,7 @@ import { DEFAULT_RECORDED, DEFAULT_SETTINGS, DEFAULT_TRAVEL, HANDS_ON_TYPES, KEY
 import { buildAgendaExport, importBlocks, resolveAgendaImport } from './planning/agendaTransfer';
 import { autoBuild } from './planning/autoBuild';
 import { buildIcs } from './planning/ics';
-import { scoreSessions, type ScoredSession } from './planning/ranking';
+import { applyManualScores, scoreSessions, type ScoredSession } from './planning/ranking';
 import { blockEvent, describeSlot, findProblems, fingerprintOf, fitOf, sameFingerprint, slotEvent, type PlanningContext, type TimedEvent } from './planning/schedule';
 import { buildCopyPrompt, buildDraftPrompt } from './profile/copyPrompt';
 import { draftFromProfile, profileFromDraft } from './profile/draft';
@@ -48,6 +48,7 @@ export class Planner implements PlannerApi {
   private readonly catalog: CatalogRepository;
   private readonly store: UserStore;
   private scoreCache: { key: string; scores: Map<string, ScoredSession> } | null = null;
+  private effectiveCache: { computed: Map<string, ScoredSession>; manualKey: string; scores: Map<string, ScoredSession> } | null = null;
   private readonly localTimes = new Map<string, { start: string; end: string }>();
 
   private constructor({ catalog, store }: { catalog: CatalogRepository; store: UserStore }) {
@@ -128,17 +129,18 @@ export class Planner implements PlannerApi {
     const ranked: RankedSession[] = [];
     for (const session of this.catalog.sessions()) {
       const scored = scores.get(session.key)!;
-      if (!filters.showAvoided && scored.explanation.avoided.length) continue;
+      if (!filters.showAvoided && scored.excluded) continue;
       if (hits && !hits.has(session.key)) continue;
       if (!matchesTags(session, filters)) continue;
       if (slotFiltered && !session.slots.some((slot) => this.slotMatches(slot, filters))) continue;
       if (filters.starredOnly && !stars.has(session.key)) continue;
       if (filters.onAgendaOnly && !onAgenda.has(session.key)) continue;
       if (filters.tbaOnly && !session.tba) continue;
+      if (filters.scored && (scored.manualScore !== null) !== (filters.scored === 'manual')) continue;
       if (filters.hideConflicting && !onAgenda.has(session.key) && !session.tba && !session.slots.some((slot) => this.fitAgainst(slot, events, ctx) === 'free')) {
         continue;
       }
-      ranked.push({ session, score: scored.score, explanation: scored.explanation, starred: stars.has(session.key), onAgenda: onAgenda.has(session.key) });
+      ranked.push({ session, ...rankedScores(scored), starred: stars.has(session.key), onAgenda: onAgenda.has(session.key) });
     }
     sortRanked(ranked, filters.sort ?? { by: 'score', dir: 'desc' });
     return filters.limit ? ranked.slice(0, filters.limit) : ranked;
@@ -151,19 +153,34 @@ export class Planner implements PlannerApi {
     const items = this.store.getItems();
     return {
       session,
-      score: scored.score,
-      explanation: scored.explanation,
+      ...rankedScores(scored),
       starred: this.store.getStars().includes(sessionKey),
       onAgenda: items.some((i) => i.sessionKey === sessionKey),
     };
   }
 
+  setManualScore(sessionKey: string, score: number | null): void {
+    this.requireSession(sessionKey);
+    if (score !== null && !(Number.isFinite(score) && score >= 0 && score <= 100)) throw new Error('Manual score must be a number from 0 to 100');
+    this.store.setManualScore(sessionKey, score === null ? null : Math.round(score));
+  }
+
+  manualScores(): Record<string, number> {
+    return this.store.getManualScores();
+  }
+
+  // Effective scores: computed from the profile (cached per profile/settings), overlaid with the manual scores.
   private scores(): Map<string, ScoredSession> {
     const profile = this.store.getProfile();
     const settings = this.settings();
     const key = JSON.stringify([profile, settings.weights, settings.recorded]);
     if (this.scoreCache?.key !== key) this.scoreCache = { key, scores: scoreSessions({ catalog: this.catalog, profile, settings }) };
-    return this.scoreCache.scores;
+    const manual = this.store.getManualScores();
+    const manualKey = JSON.stringify(manual);
+    if (this.effectiveCache?.computed !== this.scoreCache.scores || this.effectiveCache.manualKey !== manualKey) {
+      this.effectiveCache = { computed: this.scoreCache.scores, manualKey, scores: applyManualScores(this.scoreCache.scores, manual) };
+    }
+    return this.effectiveCache.scores;
   }
 
   private slotMatches(slot: Slot, filters: Filters): boolean {
@@ -322,7 +339,8 @@ export class Planner implements PlannerApi {
     const onAgenda = new Set(items.map((i) => i.sessionKey));
     const otherSessions: Alternative[] = [];
     for (const candidate of this.catalog.sessions()) {
-      if (candidate.key === sessionKey || onAgenda.has(candidate.key) || scores.get(candidate.key)?.explanation.avoided.length) continue;
+      const scored = scores.get(candidate.key);
+      if (candidate.key === sessionKey || onAgenda.has(candidate.key) || scored?.excluded || scored?.manualScore === 0) continue;
       const inWindow = candidate.slots
         .filter((slot) => slot.start && slot.end && Date.parse(slot.start) < windowEnd && windowStart < Date.parse(slot.end))
         .map((slot) => toAlternative('otherSession', candidate, slot))
@@ -509,14 +527,20 @@ export class Planner implements PlannerApi {
     if (!raw.ok) return raw;
     const parsed = StateSchema.safeParse(raw.value);
     if (!parsed.success) return { ok: false, errors: toValidationErrors(parsed.error) };
-    const { profile, settings, travel, items, stars, blocks, dismissedAlerts, tbaWatch } = parsed.data;
-    restoreStore(this.store, { profile: profile as Profile | null, settings, travel, items, stars, blocks, dismissedAlerts, tbaWatch });
+    const { profile, settings, travel, items, stars, manualScores = {}, blocks, dismissedAlerts, tbaWatch } = parsed.data;
+    restoreStore(this.store, { profile: profile as Profile | null, settings, travel, items, stars, manualScores, blocks, dismissedAlerts, tbaWatch });
     this.scoreCache = null;
     return { ok: true, value: null };
   }
 
   exportAgenda(): string {
-    const payload = buildAgendaExport({ catalog: this.catalog, items: this.agenda(), stars: this.store.getStars(), blocks: this.store.getBlocks() });
+    const payload = buildAgendaExport({
+      catalog: this.catalog,
+      items: this.agenda(),
+      stars: this.store.getStars(),
+      manualScores: this.store.getManualScores(),
+      blocks: this.store.getBlocks(),
+    });
     return JSON.stringify(payload, null, 2);
   }
 
@@ -528,11 +552,13 @@ export class Planner implements PlannerApi {
     if (!parsed.success) return { ok: false, errors: toValidationErrors(parsed.error) };
 
     const replace = options.mode === 'replace';
-    const { items, stars, report } = resolveAgendaImport({ catalog: this.catalog, payload: parsed.data, existing: replace ? [] : this.store.getItems(), newId });
+    const { items, stars, scores, report } = resolveAgendaImport({ catalog: this.catalog, payload: parsed.data, existing: replace ? [] : this.store.getItems(), newId });
     this.store.replaceItems(items);
     for (const item of items) this.watchTba(item.sessionKey, false);
     if (replace) for (const key of this.store.getStars()) this.unstar(key);
     for (const key of stars) this.star(key);
+    if (replace) for (const key of Object.keys(this.store.getManualScores())) this.store.setManualScore(key, null);
+    for (const [key, score] of Object.entries(scores)) this.store.setManualScore(key, score);
 
     let blocks = 0;
     if (options.includeBlocks) {
@@ -594,6 +620,10 @@ function parseBlock(block: PersonalBlock): PersonalBlock {
   const parsed = PersonalBlockSchema.safeParse(block);
   if (!parsed.success) throw new Error(toValidationErrors(parsed.error, 'block').map((e) => `${e.path}: ${e.message}`).join('; '));
   return parsed.data;
+}
+
+function rankedScores(scored: ScoredSession): Pick<RankedSession, 'score' | 'computedScore' | 'manualScore' | 'explanation'> {
+  return { score: scored.score, computedScore: scored.computedScore, manualScore: scored.manualScore, explanation: scored.explanation };
 }
 
 function matchesTags(session: Session, filters: Filters): boolean {

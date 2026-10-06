@@ -20,6 +20,10 @@ export interface UserStore {
   getStars(): string[];
   setStar(sessionKey: string, starred: boolean): void;
 
+  // Manual scores (0..100) the user set per session; they override the computed score.
+  getManualScores(): Record<string, number>;
+  setManualScore(sessionKey: string, score: number | null): void;
+
   getBlocks(): PersonalBlock[];
   putBlock(block: PersonalBlock): void;
   deleteBlock(id: string): void;
@@ -46,6 +50,7 @@ export interface UserStoreSnapshot {
   travel: TravelTable | null;
   items: AgendaItem[];
   stars: string[];
+  manualScores: Record<string, number>;
   blocks: PersonalBlock[];
   dismissedAlerts: string[];
   tbaWatch: string[];
@@ -58,6 +63,7 @@ export function snapshotStore(store: UserStore): UserStoreSnapshot {
     travel: store.getTravel(),
     items: store.getItems(),
     stars: store.getStars(),
+    manualScores: store.getManualScores(),
     blocks: store.getBlocks(),
     dismissedAlerts: store.getDismissedAlerts(),
     tbaWatch: store.getTbaWatch(),
@@ -71,6 +77,7 @@ export function restoreStore(store: UserStore, snapshot: UserStoreSnapshot): voi
   if (snapshot.travel) store.setTravel(snapshot.travel);
   store.replaceItems(snapshot.items);
   for (const key of snapshot.stars) store.setStar(key, true);
+  for (const [key, score] of Object.entries(snapshot.manualScores)) store.setManualScore(key, score);
   for (const block of snapshot.blocks) store.putBlock(block);
   for (const id of snapshot.dismissedAlerts) store.addDismissedAlert(id);
   store.setTbaWatch(snapshot.tbaWatch);

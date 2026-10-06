@@ -49,6 +49,8 @@ export const PersonalBlockSchema = z
   })
   .refine((b) => !b.start || !b.end || b.start < b.end, { message: 'start must be before end', path: ['end'] });
 
+export const ManualScoreSchema = z.number().int().min(0).max(100);
+
 export const StateSchema = z.object({
   kind: z.literal(STATE_KIND),
   version: z.literal(1),
@@ -58,6 +60,7 @@ export const StateSchema = z.object({
   travel: TravelSchema.nullable(),
   items: z.array(AgendaItemSchema),
   stars: z.array(z.string()),
+  manualScores: z.record(z.string(), ManualScoreSchema).optional(), // optional: exports from before manual scores
   blocks: z.array(PersonalBlockSchema),
   dismissedAlerts: z.array(z.string()),
   tbaWatch: z.array(z.string()),
@@ -86,6 +89,7 @@ export const AgendaExportSchema = z.object({
     }),
   ),
   starred: z.array(z.object({ sessionKey: z.string().min(1), code: z.string(), title: z.string() })),
+  scores: z.array(z.object({ sessionKey: z.string().min(1), code: z.string(), title: z.string(), score: ManualScoreSchema })).optional(),
   blocks: z.array(PersonalBlockSchema),
 });
 

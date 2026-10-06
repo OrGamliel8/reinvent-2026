@@ -44,15 +44,3 @@ const STATUS: Record<ReservationStatus, string> = {
 export function StatusBadge({ status }: { status: ReservationStatus }): ReactNode {
   return <Badge className={cn('rounded-md capitalize', STATUS[status])}>{status}</Badge>;
 }
-
-export function ScorePill({ score, max }: { score: number; max: number }): ReactNode {
-  const ratio = max > 0 ? Math.max(0, Math.min(1, score / max)) : 0;
-  return (
-    <div className="flex items-center gap-1.5" title={`Score ${score.toFixed(2)}`}>
-      <div className="h-1.5 w-10 overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-primary" style={{ width: `${ratio * 100}%` }} />
-      </div>
-      <span className="w-8 text-right font-mono text-xs tabular-nums text-muted-foreground">{score.toFixed(1)}</span>
-    </div>
-  );
-}

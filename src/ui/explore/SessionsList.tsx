@@ -7,7 +7,8 @@ import { cn } from '@/lib/utils';
 import { usePlannerQuery } from '../PlannerProvider';
 import { useUi } from '../UiState';
 import { levelLabel, slotWhen, venueName } from '../format';
-import { ScorePill, TbaBadge } from '../shared/badges';
+import { TbaBadge } from '../shared/badges';
+import { ScoreCell } from '../shared/ManualScore';
 import { MatchChips } from '../shared/MatchChips';
 import { StarButton } from '../shared/StarButton';
 import { EmptyState } from '../shared/EmptyState';
@@ -26,7 +27,19 @@ function firstTimedSlot(row: RankedSession): RankedSession['session']['slots'][n
 
 const columns = helper.columns([
   helper.display({ id: 'star', header: '', cell: ({ row }) => <StarButton sessionKey={row.original.session.key} starred={row.original.starred} /> }),
-  helper.accessor('score', { id: 'score', header: 'Score', cell: ({ row, table }) => <ScorePill score={row.original.score} max={(table.options.meta as { maxScore: number }).maxScore} /> }),
+  helper.accessor('score', {
+    id: 'score',
+    header: 'Score',
+    cell: ({ row, table }) => (
+      <ScoreCell
+        sessionKey={row.original.session.key}
+        score={row.original.score}
+        computedScore={row.original.computedScore}
+        manualScore={row.original.manualScore}
+        max={(table.options.meta as { maxScore: number }).maxScore}
+      />
+    ),
+  }),
   helper.display({ id: 'code', header: 'Code', cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.session.code}</span> }),
   helper.display({ id: 'title', header: 'Title', cell: ({ row }) => <TitleCell row={row.original} /> }),
   helper.display({ id: 'type', header: 'Type', cell: ({ row }) => <span className="text-xs">{row.original.session.type}</span> }),

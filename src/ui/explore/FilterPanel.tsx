@@ -20,6 +20,12 @@ const FLAGS: { key: FlagKey; label: string }[] = [
   { key: 'showAvoided', label: 'Show avoided' },
 ];
 
+const SCORED: { value: NonNullable<Filters['scored']> | 'all'; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'manual', label: 'Scored by me' },
+  { value: 'unscored', label: 'Not scored yet' },
+];
+
 interface FilterPanelProps {
   vocabulary: Vocabulary;
   filters: Filters;
@@ -82,6 +88,24 @@ export function FilterPanel({ vocabulary, filters, onChange, query, onQueryChang
         {multi.map(({ key, label, options }) => (
           <MultiSelect key={key} label={label} options={options} selected={list(key) as (string | number)[]} onChange={(values) => setList(key, values)} />
         ))}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs text-muted-foreground">My scores</Label>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          size="sm"
+          value={filters.scored ?? 'all'}
+          onValueChange={(v: string) => v && set({ scored: v === 'all' ? undefined : (v as NonNullable<Filters['scored']>) })}
+          className="w-full"
+        >
+          {SCORED.map(({ value, label }) => (
+            <ToggleGroupItem key={value} value={value} className="flex-auto px-1 text-[11px]">
+              {label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
       </div>
 
       <div className="space-y-2">

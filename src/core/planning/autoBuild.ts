@@ -141,7 +141,7 @@ export function autoBuild({ catalog, items, stars, blocks, scores, ctx, newId }:
     };
     const candidates = catalog
       .sessions()
-      .filter((s) => !handled.has(s.key) && !s.tba && scores.get(s.key)?.relevant && !scores.get(s.key)?.explanation.avoided.length)
+      .filter((s) => !handled.has(s.key) && !s.tba && scores.get(s.key)?.relevant && !scores.get(s.key)?.excluded)
       .sort((a, b) => scoreOf(b.key) - scoreOf(a.key) || a.key.localeCompare(b.key));
     for (const session of candidates) {
       if (dayFull()) break;

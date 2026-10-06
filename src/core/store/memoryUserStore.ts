@@ -8,6 +8,7 @@ export class MemoryUserStore implements UserStore {
   private travel: TravelTable | null = null;
   private items = new Map<string, AgendaItem>();
   private stars = new Set<string>();
+  private manualScores = new Map<string, number>();
   private blocks = new Map<string, PersonalBlock>();
   private dismissed = new Set<string>();
   private tbaWatch: string[] = [];
@@ -55,6 +56,14 @@ export class MemoryUserStore implements UserStore {
     else this.stars.delete(sessionKey);
   }
 
+  getManualScores(): Record<string, number> {
+    return Object.fromEntries(this.manualScores);
+  }
+  setManualScore(sessionKey: string, score: number | null): void {
+    if (score === null) this.manualScores.delete(sessionKey);
+    else this.manualScores.set(sessionKey, score);
+  }
+
   getBlocks(): PersonalBlock[] {
     return clone([...this.blocks.values()]);
   }
@@ -92,6 +101,7 @@ export class MemoryUserStore implements UserStore {
     this.travel = null;
     this.items.clear();
     this.stars.clear();
+    this.manualScores.clear();
     this.blocks.clear();
     this.dismissed.clear();
     this.tbaWatch = [];

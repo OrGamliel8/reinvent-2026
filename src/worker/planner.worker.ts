@@ -24,6 +24,8 @@ const PLANNER_METHODS = {
   profileFromDraft: true,
   rank: true,
   explain: true,
+  setManualScore: true,
+  manualScores: true,
   agenda: true,
   starred: true,
   star: true,

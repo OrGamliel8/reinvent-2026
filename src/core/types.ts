@@ -212,6 +212,7 @@ export interface Filters {
   tbaOnly?: boolean;
   hideConflicting?: boolean;
   showAvoided?: boolean;
+  scored?: 'manual' | 'unscored'; // sessions with / without a manual score
   sort?: { by: SortBy; dir: 'asc' | 'desc' };
   limit?: number;
 }
@@ -226,7 +227,9 @@ export interface MatchExplanation {
 
 export interface RankedSession {
   session: Session;
-  score: number;
+  score: number; // effective score: manualScore ?? computedScore
+  computedScore: number;
+  manualScore: number | null;
   explanation: MatchExplanation;
   starred: boolean;
   onAgenda: boolean;
@@ -290,13 +293,14 @@ export interface ChangeAlert {
 }
 
 export interface AgendaImportOptions {
-  mode: 'replace' | 'merge'; // replace = clear agenda and stars first; merge = imported item wins for a session already on the agenda
+  mode: 'replace' | 'merge'; // replace = clear agenda, stars and manual scores first; merge = imported item/score wins for a session already present
   includeBlocks: boolean;
 }
 
 export interface AgendaImportReport {
   added: number;
   replaced: number; // merge: sessions already on the agenda whose item changed (identical items are not counted)
+  scores: number; // manual scores imported
   movedToOtherSlot: { code: string; title: string; from: string; to: string }[];
   skipped: { code: string; title: string; reason: string }[];
   starred: number;
@@ -324,6 +328,8 @@ export interface PlannerApi {
 
   rank(filters: Filters): RankedSession[];
   explain(sessionKey: string): RankedSession | null;
+  setManualScore(sessionKey: string, score: number | null): void; // 0..100, rounded; null clears
+  manualScores(): Record<string, number>;
 
   agenda(): AgendaItem[];
   starred(): string[];
@@ -359,7 +365,7 @@ export interface PlannerApi {
   exportIcs(options: IcsOptions): string;
   exportState(): string;
   importState(json: string): Result<null>;
-  exportAgenda(): string; // agenda, stars and personal blocks only (no profile or settings)
+  exportAgenda(): string; // agenda, stars, manual scores and personal blocks only (no profile or settings)
   importAgenda(json: string, options: AgendaImportOptions): Result<AgendaImportReport>;
 }
 

@@ -10,11 +10,13 @@ export function buildAgendaExport({
   catalog,
   items,
   stars,
+  manualScores,
   blocks,
 }: {
   catalog: CatalogRepository;
   items: AgendaItem[];
   stars: string[];
+  manualScores: Record<string, number>;
   blocks: PersonalBlock[];
 }): AgendaExport {
   return {
@@ -42,6 +44,10 @@ export function buildAgendaExport({
       const session = catalog.session(key);
       return { sessionKey: key, code: session?.code ?? key, title: session?.title ?? '' };
     }),
+    scores: Object.entries(manualScores).map(([key, score]) => {
+      const session = catalog.session(key);
+      return { sessionKey: key, code: session?.code ?? key, title: session?.title ?? '', score };
+    }),
     blocks,
   };
 }
@@ -57,8 +63,8 @@ export function resolveAgendaImport({
   payload: AgendaExport;
   existing: AgendaItem[];
   newId: () => string;
-}): { items: AgendaItem[]; stars: string[]; report: Omit<AgendaImportReport, 'blocks'> } {
-  const report: Omit<AgendaImportReport, 'blocks'> = { added: 0, replaced: 0, movedToOtherSlot: [], skipped: [], starred: 0 };
+}): { items: AgendaItem[]; stars: string[]; scores: Record<string, number>; report: Omit<AgendaImportReport, 'blocks'> } {
+  const report: Omit<AgendaImportReport, 'blocks'> = { added: 0, replaced: 0, movedToOtherSlot: [], skipped: [], starred: 0, scores: 0 };
   const byKey = new Map(existing.map((item) => [item.sessionKey, item]));
   const imported = new Map<string, AgendaItem>();
 
@@ -98,7 +104,14 @@ export function resolveAgendaImport({
     else report.skipped.push({ code: star.code, title: star.title, reason: 'starred session not in catalog' });
   }
   report.starred = stars.length;
-  return { items: [...new Map([...byKey, ...imported]).values()], stars, report };
+
+  const scores: Record<string, number> = {};
+  for (const entry of payload.scores ?? []) {
+    if (catalog.session(entry.sessionKey)) scores[entry.sessionKey] = entry.score;
+    else report.skipped.push({ code: entry.code, title: entry.title, reason: 'scored session not in catalog' });
+  }
+  report.scores = Object.keys(scores).length;
+  return { items: [...new Map([...byKey, ...imported]).values()], stars, scores, report };
 }
 
 function sameItem(a: AgendaItem, b: AgendaItem): boolean {

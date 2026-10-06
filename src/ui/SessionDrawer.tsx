@@ -2,11 +2,12 @@ import type { ReactNode } from 'react';
 import { Check, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import type { AgendaItem, MatchExplanation, Session, Slot, SlotFit } from '@/core/types';
+import type { AgendaItem, MatchExplanation, RankedSession, Session, Slot, SlotFit } from '@/core/types';
 import { usePlanner, usePlannerQuery } from './PlannerProvider';
 import { useUi } from './UiState';
 import { levelLabel, slotWhen, venueName } from './format';
 import { FitBadge, TbaBadge } from './shared/badges';
+import { ManualScoreButton } from './shared/ManualScore';
 import { StarButton } from './shared/StarButton';
 import { SectionTitle } from './shared/EmptyState';
 
@@ -21,8 +22,7 @@ export function SessionDrawer(): ReactNode {
 
 interface DetailData {
   session: Session;
-  score: number | null;
-  explanation: MatchExplanation | null;
+  ranked: RankedSession | null;
   starred: boolean;
   items: AgendaItem[];
   fits: Record<string, SlotFit>;
@@ -36,8 +36,7 @@ function SessionDetail({ sessionKey }: { sessionKey: string }): ReactNode {
     const fits = await Promise.all(full.slots.map(async (slot) => [slot.slotId, await api.slotFit(slot.slotId)] as const));
     return {
       session: full,
-      score: ranked?.score ?? null,
-      explanation: ranked?.explanation ?? null,
+      ranked,
       starred: starred.includes(sessionKey),
       items: agenda.filter((item) => item.sessionKey === sessionKey),
       fits: Object.fromEntries(fits),
@@ -71,10 +70,21 @@ function SessionDetail({ sessionKey }: { sessionKey: string }): ReactNode {
           <SectionTitle>Slots</SectionTitle>
           <SlotList slots={session.slots} items={data.items} fits={data.fits} />
         </section>
-        {data.explanation && (
+        {data.ranked && (
           <section className="space-y-2">
-            <SectionTitle>Why this matches · score {data.score?.toFixed(2)}</SectionTitle>
-            <ExplanationBreakdown explanation={data.explanation} />
+            <SectionTitle
+              action={
+                <ManualScoreButton
+                  sessionKey={session.key}
+                  score={data.ranked.score}
+                  computedScore={data.ranked.computedScore}
+                  manualScore={data.ranked.manualScore}
+                />
+              }
+            >
+              Why this matches · {data.ranked.manualScore === null ? 'score' : 'computed'} {data.ranked.computedScore.toFixed(2)}
+            </SectionTitle>
+            <ExplanationBreakdown explanation={data.ranked.explanation} />
           </section>
         )}
         <section className="space-y-2">

@@ -30,7 +30,7 @@ describe('agenda export/import', () => {
 
     const { planner: fresh } = await openPlanner({ profile: null });
     const result = fresh.importAgenda(exported, replace);
-    expect(result).toEqual({ ok: true, value: { added: 3, replaced: 0, movedToOtherSlot: [], skipped: [], starred: 2, blocks: 6 } });
+    expect(result).toEqual({ ok: true, value: { added: 3, replaced: 0, movedToOtherSlot: [], skipped: [], starred: 2, scores: 0, blocks: 6 } });
     expect(stripIds(fresh.agenda())).toEqual(stripIds(planner.agenda()));
     expect(fresh.starred().sort()).toEqual(['IAM333', 'SEC360']);
     const byTitle = (p: Planner) => stripIds(p.personalBlocks()).sort((a, b) => a.title.localeCompare(b.title));

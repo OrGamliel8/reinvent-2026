@@ -3,9 +3,12 @@ import type { CatalogRepository } from '../catalog/catalogRepository';
 import type { MatchExplanation, Profile, Session, Settings } from '../types';
 
 export interface ScoredSession {
-  score: number;
+  score: number; // effective: manualScore ?? computedScore
+  computedScore: number;
+  manualScore: number | null;
   explanation: MatchExplanation;
-  relevant: boolean; // matched at least one interest or weighted tag (auto-build only suggests these)
+  relevant: boolean; // matched at least one interest or weighted tag, or has a manual score > 0 (auto-build only suggests these)
+  excluded: boolean; // hit the avoid list and the user hasn't scored it above 0
 }
 
 const TEXT_RATE = 1;
@@ -64,9 +67,13 @@ export function scoreSessions({ catalog, profile, settings }: { catalog: Catalog
       ...(profile?.avoid.services ?? []).filter((s) => session.services.includes(s)).map((s) => `service "${s}"`),
     ];
 
+    const score = round1(Math.max(0, textTotal + tagTotal + levelContribution + formatContribution));
     result.set(session.key, {
-      score: round1(Math.max(0, textTotal + tagTotal + levelContribution + formatContribution)),
+      score,
+      computedScore: score,
+      manualScore: null,
       relevant: matched.length > 0 || tags.length > 0,
+      excluded: avoided.length > 0,
       explanation: {
         interests: matched
           .map((m) => ({ label: m.label, keywords: m.keywords, contribution: round1((textTotal * m.strength) / strengthSum) }))
@@ -77,6 +84,17 @@ export function scoreSessions({ catalog, profile, settings }: { catalog: Catalog
         avoided,
       },
     });
+  }
+  return result;
+}
+
+// Overlays the user's manual scores: they replace the score, 0 makes a session irrelevant and > 0 makes it relevant
+// (an explicit score above 0 also overrides the avoid list).
+export function applyManualScores(scores: Map<string, ScoredSession>, manual: Record<string, number>): Map<string, ScoredSession> {
+  const result = new Map(scores);
+  for (const [key, manualScore] of Object.entries(manual)) {
+    const scored = scores.get(key);
+    if (scored) result.set(key, { ...scored, score: manualScore, manualScore, relevant: manualScore > 0, excluded: scored.excluded && manualScore === 0 });
   }
   return result;
 }

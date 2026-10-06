@@ -162,5 +162,6 @@ function summary(report: AgendaImportReport): string {
   if (report.movedToOtherSlot.length) parts.push(`${report.movedToOtherSlot.length} moved to another slot`);
   if (report.skipped.length) parts.push(`${report.skipped.length} skipped`);
   parts.push(`${report.starred} starred`, `${report.blocks} blocks`);
+  if (report.scores) parts.push(`${report.scores} scores`);
   return parts.join(' · ');
 }
