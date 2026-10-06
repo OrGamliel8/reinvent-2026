@@ -30,6 +30,23 @@ describe('reservation checklist', () => {
     expect(byCode.get('ANT319-R1')!.portalUrl).toMatch(/search=ANT319-R1$/);
   });
 
+  it('optionally lists starred sessions that are not on the agenda, after the agenda, at a slot that fits', async () => {
+    const { planner } = await openPlanner();
+    add(planner, 'SEC401');
+    planner.star('SEC401'); // on the agenda: listed once, as an agenda row
+    planner.star('ANT319');
+    expect(planner.reservationChecklist().map((c) => c.code)).toEqual(['SEC401']);
+
+    const all = planner.reservationChecklist({ includeStarred: true });
+    expect(all.map((c) => [c.code.replace(/-R\d*$/, ''), c.onAgenda, c.itemId === null])).toEqual([
+      ['SEC401', true, false],
+      ['ANT319', false, true],
+    ]);
+    const starredOnly = all[1];
+    expect(starredOnly).toMatchObject({ starred: true, status: 'none', alternatives: [] });
+    expect(planner.slotFit(starredOnly.slot.slotId)).toBe('free');
+  });
+
   it('tracks statuses and suggests alternatives for failed reservations', async () => {
     const { planner } = await openPlanner();
     const sec = add(planner, 'SEC310');

@@ -1,5 +1,8 @@
-import { Fragment, type ReactNode } from 'react';
-import { ClipboardList, ExternalLink, Star, Wrench } from 'lucide-react';
+import { Fragment, useState, type ReactNode } from 'react';
+import { ClipboardList, ExternalLink, Plus, Star, Wrench } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { ChecklistItem, ReservationStatus } from '@/core/types';
@@ -11,13 +14,23 @@ import { StatusBadge } from '../shared/badges';
 import { CopyButton } from '../shared/CopyButton';
 import { EmptyState } from '../shared/EmptyState';
 import { AlternativesList } from '../shared/AlternativesList';
+import { readPref, writePref } from '../explore/prefs';
 
 const STATUSES: ReservationStatus[] = ['none', 'reserved', 'waitlisted', 'failed', 'walk-up'];
+const SHOW_STARRED_KEY = 'reinvent.reservations.showStarred';
+const COLUMNS = 9;
 
 export function ReservationsView(): ReactNode {
-  const { data: items } = usePlannerQuery((api) => api.reservationChecklist(), []);
-  if (!items) return null;
-  if (items.length === 0) {
+  const [showStarred, setShowStarred] = useState(() => readPref(SHOW_STARRED_KEY) === '1');
+  const { data: all } = usePlannerQuery((api) => api.reservationChecklist({ includeStarred: true }), []);
+  if (!all) return null;
+  const items = all.filter((i) => i.onAgenda);
+  const starredOnly = showStarred ? all.filter((i) => !i.onAgenda) : [];
+  const toggleStarred = (on: boolean): void => {
+    setShowStarred(on);
+    writePref(SHOW_STARRED_KEY, on ? '1' : '0');
+  };
+  if (all.length === 0) {
     return (
       <EmptyState icon={ClipboardList} title="Nothing to reserve yet">
         Add sessions to My Agenda (or run Auto-build). The checklist orders them by priority and scarcity so you reserve the hardest ones first.
@@ -29,6 +42,12 @@ export function ReservationsView(): ReactNode {
     <div className="h-full overflow-auto">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
         <p className="text-sm text-muted-foreground">Reserve top to bottom: smallest rooms, single-slot and hands-on sessions come first.</p>
+        <div className="flex items-center gap-2">
+          <Switch id="show-starred" checked={showStarred} onCheckedChange={toggleStarred} />
+          <Label htmlFor="show-starred" className="text-xs font-normal">
+            Show starred, not on agenda
+          </Label>
+        </div>
         <div className="ml-auto flex gap-1.5">
           {counts.map(([status, n]) => (
             <span key={status} className="flex items-center gap-1 text-xs">
@@ -54,6 +73,17 @@ export function ReservationsView(): ReactNode {
         <TableBody>
           {items.map((item, index) => (
             <ChecklistRow key={item.itemId} item={item} index={index} />
+          ))}
+          {showStarred && (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={COLUMNS} className="bg-muted/50 py-1.5 text-xs font-medium text-muted-foreground">
+                <Star className="mr-1 inline size-3.5 fill-amber-400 text-amber-500" />
+                Starred, not on your agenda ({starredOnly.length}){starredOnly.length === 0 && ' — star sessions in Explore to see them here'}
+              </TableCell>
+            </TableRow>
+          )}
+          {starredOnly.map((item, index) => (
+            <ChecklistRow key={item.sessionKey} item={item} index={index} />
           ))}
         </TableBody>
       </Table>
@@ -91,18 +121,30 @@ function ChecklistRow({ item, index }: { item: ChecklistItem; index: number }): 
         <TableCell className="hidden truncate text-xs xl:table-cell">{item.slot.room ?? '—'}</TableCell>
         <TableCell className="text-right font-mono text-xs tabular-nums">{item.slot.seats ?? '—'}</TableCell>
         <TableCell>
-          <Select value={item.status} onValueChange={(status) => void mutate((api) => api.setReservationStatus(item.itemId, status as ReservationStatus))}>
-            <SelectTrigger size="sm" className="w-32 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUSES.map((s) => (
-                <SelectItem key={s} value={s} className="capitalize">
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {item.itemId === null ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs"
+              disabled={!item.slot.start}
+              onClick={() => void mutate((api) => api.addSlot(item.slot.slotId))}
+            >
+              <Plus /> Add to agenda
+            </Button>
+          ) : (
+            <Select value={item.status} onValueChange={(status) => void mutate((api) => api.setReservationStatus(item.itemId!, status as ReservationStatus))}>
+              <SelectTrigger size="sm" className="w-32 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUSES.map((s) => (
+                  <SelectItem key={s} value={s} className="capitalize">
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </TableCell>
         <TableCell>
           <a
@@ -119,7 +161,7 @@ function ChecklistRow({ item, index }: { item: ChecklistItem; index: number }): 
       {failed && (
         <TableRow className="bg-destructive/5 hover:bg-destructive/5">
           <TableCell />
-          <TableCell colSpan={8} className="pt-0 whitespace-normal">
+          <TableCell colSpan={COLUMNS - 1} className="pt-0 whitespace-normal">
             <p className="mb-1.5 text-xs font-medium text-muted-foreground">Alternatives</p>
             <AlternativesList alternatives={item.alternatives} replaceItemId={item.itemId} />
           </TableCell>

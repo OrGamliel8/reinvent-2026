@@ -288,7 +288,8 @@ export interface AutoBuildResult {
 }
 
 export interface ChecklistItem {
-  itemId: string;
+  itemId: string | null; // null = starred session that isn't on the agenda (shown with includeStarred)
+  onAgenda: boolean;
   sessionKey: string;
   code: string; // slot short code, for searching in the official portal
   title: string;
@@ -473,7 +474,7 @@ export interface PlannerApi {
   settings(): Settings;
   updateSettings(settings: Settings): void;
 
-  reservationChecklist(): ChecklistItem[];
+  reservationChecklist(options?: { includeStarred?: boolean }): ChecklistItem[];
   setReservationStatus(itemId: string, status: ReservationStatus): void;
 
   detectChanges(): ChangeAlert[]; // active (non-dismissed) alerts

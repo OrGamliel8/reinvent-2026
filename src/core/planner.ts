@@ -467,22 +467,18 @@ export class Planner implements PlannerApi {
 
   // ---------- Reservations ----------
 
-  reservationChecklist(): ChecklistItem[] {
+  reservationChecklist({ includeStarred = false }: { includeStarred?: boolean } = {}): ChecklistItem[] {
     const scores = this.scores();
     const stars = new Set(this.store.getStars());
-    const checklist: ChecklistItem[] = [];
-    for (const item of this.store.getItems()) {
-      const slot = this.catalog.slot(item.slotId);
-      const session = this.catalog.session(item.sessionKey);
-      if (!slot?.start || !session) continue;
+    const items = this.store.getItems();
+    const entry = (session: Session, slot: Slot, intent: number, item: AgendaItem | null): ChecklistItem => {
       const seatFactor = slot.seats ? clamp01(1 - Math.log(slot.seats / 50) / Math.log(1000 / 50)) : 0.5;
       const slotFactor = 1 / Math.max(1, session.slots.filter((s) => s.start).length);
       const handsOn = HANDS_ON_TYPES.has(session.type) || session.features.includes('Hands-on') ? 1 : 0;
-      const scarcity = Math.round(100 * (0.45 * seatFactor + 0.3 * slotFactor + 0.25 * handsOn));
-      const intent = item.pinned ? 1 : item.origin !== 'suggested' || stars.has(session.key) ? 0.8 : 0.5;
-      const priority = Math.round(100 * (0.5 * intent + 0.5 * ((scores.get(session.key)?.score ?? 0) / 100)));
-      checklist.push({
-        itemId: item.id,
+      const status = item?.reservation ?? 'none';
+      return {
+        itemId: item?.id ?? null,
+        onAgenda: item !== null,
         sessionKey: session.key,
         code: slot.code,
         title: session.title,
@@ -490,13 +486,35 @@ export class Planner implements PlannerApi {
         starred: stars.has(session.key),
         portalUrl: portalUrl(slot.code),
         slot,
-        scarcity,
-        priority,
-        status: item.reservation,
-        alternatives: item.reservation === 'failed' ? this.alternatives({ slotId: slot.slotId }) : [],
-      });
+        scarcity: Math.round(100 * (0.45 * seatFactor + 0.3 * slotFactor + 0.25 * handsOn)),
+        priority: Math.round(100 * (0.5 * intent + 0.5 * ((scores.get(session.key)?.score ?? 0) / 100))),
+        status,
+        alternatives: status === 'failed' ? this.alternatives({ slotId: slot.slotId }) : [],
+      };
+    };
+    const byUrgency = (a: ChecklistItem, b: ChecklistItem): number =>
+      b.priority * b.scarcity - a.priority * a.scarcity || (a.slot.start ?? '~').localeCompare(b.slot.start ?? '~');
+
+    const onAgenda: ChecklistItem[] = [];
+    for (const item of items) {
+      const slot = this.catalog.slot(item.slotId);
+      const session = this.catalog.session(item.sessionKey);
+      if (!slot?.start || !session) continue;
+      const intent = item.pinned ? 1 : item.origin !== 'suggested' || stars.has(session.key) ? 0.8 : 0.5;
+      onAgenda.push(entry(session, slot, intent, item));
     }
-    return checklist.sort((a, b) => b.priority * b.scarcity - a.priority * a.scarcity || a.slot.start!.localeCompare(b.slot.start!));
+    if (!includeStarred) return onAgenda.sort(byUrgency);
+
+    // Starred sessions not on the agenda, each at its first slot that fits the agenda (else its first slot), listed after the agenda.
+    const planned = new Set(items.map((i) => i.sessionKey));
+    const starredOnly: ChecklistItem[] = [];
+    for (const key of stars) {
+      const session = planned.has(key) ? null : this.catalog.session(key);
+      if (!session?.slots.length) continue;
+      const slot = session.slots.find((s) => s.start && this.slotFit(s.slotId) === 'free') ?? session.slots.find((s) => s.start) ?? session.slots[0];
+      starredOnly.push(entry(session, slot, 0.8, null));
+    }
+    return [...onAgenda.sort(byUrgency), ...starredOnly.sort(byUrgency)];
   }
 
   setReservationStatus(itemId: string, status: ReservationStatus): void {
