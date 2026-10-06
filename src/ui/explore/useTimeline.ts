@@ -33,13 +33,13 @@ export interface TimelineData {
 export function useTimelineData(filters: Filters, filtersKey: string, day: DayId, topN: TopN): { data: TimelineData | undefined; loading: boolean } {
   const { data, loading } = usePlannerQuery(async (api) => {
     const [matching, tba, agenda] = await Promise.all([api.rank(timelineFilters(filters, day)), api.rank({ ...filters, tbaOnly: true }), api.agenda()]);
-    return { filters, day, matching, tbaHidden: tba.length, agendaSlots: new Set(agenda.map((i) => i.slotId)) };
+    return { matching, tbaHidden: tba.length, agendaSlots: new Set(agenda.map((i) => i.slotId)) };
   }, [filtersKey, day]);
 
   const result = useMemo(() => {
     if (!data) return undefined;
     const top = topN === null ? data.matching : data.matching.slice(0, topN);
-    return { lanes: buildLanes(top, data.filters, data.day, data.agendaSlots), shown: top.length, matching: data.matching.length, tbaHidden: data.tbaHidden };
+    return { lanes: buildLanes(top, data.agendaSlots), shown: top.length, matching: data.matching.length, tbaHidden: data.tbaHidden };
   }, [data, topN]);
   return { data: result, loading };
 }

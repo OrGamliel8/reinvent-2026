@@ -48,6 +48,7 @@ const PLANNER_METHODS = {
   slotFit: true,
   autoBuild: true,
   conflicts: true,
+  daySummaries: true,
   alternatives: true,
   personalBlocks: true,
   createBlock: true,

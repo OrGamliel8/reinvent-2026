@@ -17,6 +17,7 @@ export interface TimedEvent {
 export interface PlanningContext {
   travel: TravelTable;
   availability: Profile['availability'] | null; // null = no profile, no availability limits
+  maxVenueSwitches: number; // auto-build never lets a day go above this many venue changes
 }
 
 export interface Problem {
@@ -144,4 +145,40 @@ export function addedTravel(candidate: TimedEvent, others: TimedEvent[], ctx: Pl
   const after = sameDay.filter((o) => o.start >= candidate.end).sort((a, b) => a.start - b.start)[0];
   const t = (a: TimedEvent | undefined, b: TimedEvent | undefined): number => (a && b ? travelMinutes(ctx.travel, a.venue, b.venue) : 0);
   return t(before, candidate) + t(candidate, after) - t(before, after);
+}
+
+// A day's events that have a venue, in time order.
+export function dayRoute(events: TimedEvent[], day: DayId): TimedEvent[] {
+  return events.filter((e) => e.day === day && e.venue).sort((a, b) => a.start - b.start || a.end - b.end || a.id.localeCompare(b.id));
+}
+
+// Consecutive pairs of a day's located events whose venues differ.
+export function venueSwitches(events: TimedEvent[], day: DayId): [TimedEvent, TimedEvent][] {
+  const route = dayRoute(events, day);
+  return route.slice(1).flatMap((next, i) => (route[i].venue !== next.venue ? [[route[i], next] as [TimedEvent, TimedEvent]] : []));
+}
+
+// Venues in visiting order, consecutive repeats collapsed.
+export function routeVenues(events: TimedEvent[], day: DayId): VenueId[] {
+  const route = dayRoute(events, day);
+  return route.filter((e, i) => i === 0 || e.venue !== route[i - 1].venue).map((e) => e.venue!);
+}
+
+// Why a candidate can't join the plan under the venue-switch limit, or null when it can.
+// A day already over the limit (pinned items) may still take a candidate that adds no switch.
+export function venueSwitchProblem(candidate: TimedEvent, others: TimedEvent[], ctx: PlanningContext): string | null {
+  if (!candidate.venue) return null;
+  const before = venueSwitches(others, candidate.day).length;
+  const after = venueSwitches([...others, candidate], candidate.day).length;
+  if (after <= ctx.maxVenueSwitches || after <= before) return null;
+  return `would add a ${ordinal(after)} venue switch on ${dayLabel(candidate.day).slice(0, 3)} (max ${ctx.maxVenueSwitches})`;
+}
+
+export function addedSwitches(candidate: TimedEvent, others: TimedEvent[]): number {
+  return venueSwitches([...others, candidate], candidate.day).length - venueSwitches(others, candidate.day).length;
+}
+
+function ordinal(n: number): string {
+  const suffix = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] ?? 'th';
+  return `${n}${suffix}`;
 }

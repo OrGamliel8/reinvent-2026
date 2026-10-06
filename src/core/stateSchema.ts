@@ -1,5 +1,6 @@
 // Schema of the exportState/importState payload (the whole User Store).
 import { z } from 'zod';
+import { DEFAULT_SETTINGS } from './defaults';
 import { ProfileSchema } from './profile/schema';
 
 export const STATE_KIND = 'reinvent-2026-planner-state';
@@ -12,6 +13,7 @@ export const SettingsSchema = z.object({
   weights: z.object({ text: z.number().min(0), tags: z.number().min(0), level: z.number().min(0), format: z.number().min(0) }),
   theme: z.enum(['system', 'light', 'dark']),
   recorded: z.record(z.string(), z.boolean()),
+  maxVenueSwitchesPerDay: z.number().int().min(0).max(5).default(DEFAULT_SETTINGS.maxVenueSwitchesPerDay), // default: settings from before the limit
 });
 
 export const TravelSchema = z.record(z.string().regex(/^[a-z-]+\|[a-z-]+$/, 'Expected "venueA|venueB"'), z.number().min(0).max(240));

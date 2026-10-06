@@ -25,7 +25,7 @@ describe('.ics export', () => {
     expect(text).toContain('LOCATION:Venetian\\, Level 3 | Lido 3001');
     expect(text).toContain('LOCATION:Wynn/Encore\r\n');
     expect(text).toContain('DESCRIPTION:In this workshop you build threat detection for AI agents: wire Amazon GuardDuty findings\\, detect');
-    expect(text).toContain('\\n\\nSession code: SEC401\\nhttps://reinvent-planner.cloud/');
+    expect(text).toContain('\\n\\nSession code: SEC401\\nhttps://registration.awsevents.com/flow/awsevents/reinvent2026/eventcatalog/page/eventcatalog?search=SEC401');
   });
 
   it('includes enabled, scheduled personal blocks only when opted in, converted from Las Vegas time to UTC', async () => {

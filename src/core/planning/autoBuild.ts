@@ -1,9 +1,10 @@
 // Greedy, deterministic auto-build: pinned -> kept picks -> starred -> swap pass -> suggestions.
+// Every placement respects the daily venue-switch limit; pinned items and picks kept as-is may exceed it.
 import type { CatalogRepository } from '../catalog/catalogRepository';
 import { lvTime } from '../time';
 import { DAYS, type AgendaItem, type AutoBuildResult, type ItemOrigin, type Session, type Slot } from '../types';
 import type { ScoredSession } from './ranking';
-import { addedTravel, findProblems, fingerprintOf, slotEvent, type PlanningContext, type Problem, type TimedEvent } from './schedule';
+import { addedSwitches, addedTravel, findProblems, fingerprintOf, slotEvent, venueSwitchProblem, type PlanningContext, type Problem, type TimedEvent } from './schedule';
 
 export interface AutoBuildInput {
   catalog: CatalogRepository;
@@ -43,14 +44,21 @@ export function autoBuild({ catalog, items, stars, blocks, scores, ctx, newId }:
     code: session.code,
   });
 
+  const fits = (event: TimedEvent, others: TimedEvent[]): boolean => findProblems(event, others, ctx, 'place').length === 0 && !venueSwitchProblem(event, others, ctx);
+
   const bestSlot = (session: Session, itemId: string, preferSlotId?: string): Slot | null => {
     const others = events(itemId);
     const feasible = session.slots
       .map((slot) => ({ slot, event: slotEvent(slot, { id: itemId, title: session.title }) }))
-      .filter((c): c is { slot: Slot; event: TimedEvent } => !!c.event && findProblems(c.event, others, ctx, 'place').length === 0);
+      .filter((c): c is { slot: Slot; event: TimedEvent } => !!c.event && fits(c.event, others));
     const preferred = feasible.find((c) => c.slot.slotId === preferSlotId);
     if (preferred) return preferred.slot;
-    feasible.sort((a, b) => addedTravel(a.event, others, ctx) - addedTravel(b.event, others, ctx) || a.event.start - b.event.start);
+    feasible.sort(
+      (a, b) =>
+        addedSwitches(a.event, others) - addedSwitches(b.event, others) ||
+        addedTravel(a.event, others, ctx) - addedTravel(b.event, others, ctx) ||
+        a.event.start - b.event.start,
+    );
     return feasible[0]?.slot ?? null;
   };
 
@@ -114,6 +122,10 @@ export function autoBuild({ catalog, items, stars, blocks, scores, ctx, newId }:
 
       const snapshot = [...placements];
       placements.splice(0, placements.length, ...placements.filter((p) => !blockers.includes(p)));
+      if (venueSwitchProblem(candidate, events(item.id), ctx)) {
+        placements.splice(0, placements.length, ...snapshot);
+        continue;
+      }
       place(item, slot, true);
       const moved = blockers.every((blocker) => {
         const blockerSession = catalog.session(blocker.item.sessionKey);
@@ -158,9 +170,12 @@ export function autoBuild({ catalog, items, stars, blocks, scores, ctx, newId }:
     const others = events(itemId);
     return timedSlots(session)
       .map((slot) => {
-        const problems = findProblems(slotEvent(slot, { id: itemId, title: session.title })!, others, ctx, 'place');
+        const event = slotEvent(slot, { id: itemId, title: session.title })!;
+        const messages = findProblems(event, others, ctx, 'place').map((p) => p.message);
+        const switchProblem = venueSwitchProblem(event, others, ctx);
+        if (switchProblem) messages.push(switchProblem);
         const label = `${slot.code} ${DAYS.find((d) => d.id === slot.day)?.label ?? ''} ${lvTime(slot.start!)}`;
-        return `${label}: ${problems.map((p) => p.message).join(', ') || 'no room'}`;
+        return `${label}: ${messages.join(', ') || 'no room'}`;
       })
       .join('; ');
   }

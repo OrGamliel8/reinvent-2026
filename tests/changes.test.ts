@@ -70,7 +70,7 @@ describe('change detection', () => {
     expect(remaining.map((a) => a.kind)).toEqual(['removed']);
     expect(planner.agenda().map((i) => i.id)).not.toContain(items.secR);
     // The travel conflict itself is still visible until it is resolved.
-    expect(planner.conflicts()).toMatchObject([{ itemId: items.sec360, kind: 'travel', withId: items.cmp }]);
+    expect(planner.conflicts().filter((c) => c.kind !== 'venueSwitches')).toMatchObject([{ itemId: items.sec360, kind: 'travel', withId: items.cmp }]);
     expect(() => planner.acceptChange('nope')).toThrow();
   });
 

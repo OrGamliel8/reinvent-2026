@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { DAYS, type DayId, type Filters, type Vocabulary } from '@/core/types';
-import { venueName } from '../format';
+import { DAYS, VENUES, type DayId, type Filters, type VenueId, type Vocabulary } from '@/core/types';
+import { cn } from '@/lib/utils';
+import { VENUE_COLORS } from '../format';
+import { SELECTED_CHIP } from '../shared/chipStyles';
 import { MultiSelect, toOptions } from '../shared/MultiSelect';
 
-type ListKey = 'venues' | 'types' | 'levels' | 'topics' | 'services' | 'roles' | 'industries' | 'features';
+type ListKey = 'types' | 'levels' | 'topics' | 'services' | 'roles' | 'industries' | 'features';
 type FlagKey = 'starredOnly' | 'onAgendaOnly' | 'tbaOnly' | 'hideConflicting' | 'showAvoided';
 
 const FLAGS: { key: FlagKey; label: string }[] = [
@@ -19,6 +21,8 @@ const FLAGS: { key: FlagKey; label: string }[] = [
   { key: 'hideConflicting', label: 'Hide conflicting' },
   { key: 'showAvoided', label: 'Show avoided' },
 ];
+
+const VENUE_SHORT: Record<VenueId, string> = { venetian: 'Venetian', wynn: 'Wynn', 'caesars-forum': 'Forum', 'caesars-palace': 'Caesars', mgm: 'MGM' };
 
 const SCORED: { value: NonNullable<Filters['scored']> | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -40,7 +44,6 @@ export function FilterPanel({ vocabulary, filters, onChange, query, onQueryChang
   const setList = (key: ListKey, values: (string | number)[]): void => set({ [key]: values.length ? values : undefined });
 
   const multi: { key: ListKey; label: string; options: { value: string | number; label: string }[] }[] = [
-    { key: 'venues', label: 'Venue', options: toOptions(vocabulary.venues, venueName) },
     { key: 'types', label: 'Type', options: toOptions(vocabulary.types) },
     { key: 'levels', label: 'Level', options: toOptions(vocabulary.levels) },
     { key: 'topics', label: 'Topic', options: toOptions(vocabulary.topics) },
@@ -68,8 +71,28 @@ export function FilterPanel({ vocabulary, filters, onChange, query, onQueryChang
           className="w-full"
         >
           {DAYS.map((d) => (
-            <ToggleGroupItem key={d.id} value={d.id} className="flex-1 px-0 text-xs capitalize" title={d.label}>
+            <ToggleGroupItem key={d.id} value={d.id} className={cn('flex-1 px-0 text-xs capitalize', SELECTED_CHIP)} title={d.label}>
               {d.id}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-xs text-muted-foreground">Venue</Label>
+        <ToggleGroup
+          type="multiple"
+          variant="outline"
+          size="sm"
+          spacing={1}
+          value={filters.venues ?? []}
+          onValueChange={(venues: string[]) => set({ venues: venues.length ? (venues as VenueId[]) : undefined })}
+          className="w-full flex-wrap"
+        >
+          {VENUES.map((v) => (
+            <ToggleGroupItem key={v.id} value={v.id} className={cn('gap-1 px-1.5 text-xs', SELECTED_CHIP)} title={v.name}>
+              <span className="size-2 rounded-full ring-1 ring-background" style={{ background: VENUE_COLORS[v.id] }} />
+              {VENUE_SHORT[v.id]}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
@@ -101,7 +124,7 @@ export function FilterPanel({ vocabulary, filters, onChange, query, onQueryChang
           className="w-full"
         >
           {SCORED.map(({ value, label }) => (
-            <ToggleGroupItem key={value} value={value} className="flex-auto px-1 text-[11px]">
+            <ToggleGroupItem key={value} value={value} className={cn('flex-auto px-1 text-[11px]', SELECTED_CHIP)}>
               {label}
             </ToggleGroupItem>
           ))}

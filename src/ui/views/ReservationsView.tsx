@@ -1,12 +1,12 @@
 import { Fragment, type ReactNode } from 'react';
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, ExternalLink, Star, Wrench } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { ChecklistItem, ReservationStatus } from '@/core/types';
 import { cn } from '@/lib/utils';
 import { usePlanner, usePlannerQuery } from '../PlannerProvider';
 import { useUi } from '../UiState';
-import { slotWhen, venueName } from '../format';
+import { isHandsOn, slotWhen, venueName } from '../format';
 import { StatusBadge } from '../shared/badges';
 import { CopyButton } from '../shared/CopyButton';
 import { EmptyState } from '../shared/EmptyState';
@@ -48,6 +48,7 @@ export function ReservationsView(): ReactNode {
             <TableHead className="hidden w-32 xl:table-cell">Room</TableHead>
             <TableHead className="w-16 text-right">Seats</TableHead>
             <TableHead className="w-36">Status</TableHead>
+            <TableHead className="w-24">Portal</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -73,9 +74,13 @@ function ChecklistRow({ item, index }: { item: ChecklistItem; index: number }): 
           <CopyButton text={item.code} label="Copy session code" />
         </TableCell>
         <TableCell>
-          <button className="block w-full truncate text-left font-medium hover:underline" title={item.title} onClick={() => openSession(item.sessionKey)}>
-            {item.title}
-          </button>
+          <div className="flex min-w-0 items-center gap-1.5">
+            {item.starred && <Star className="size-3.5 shrink-0 fill-amber-400 text-amber-500" aria-label="Starred" />}
+            <button className="min-w-0 flex-1 truncate text-left font-medium hover:underline" title={item.title} onClick={() => openSession(item.sessionKey)}>
+              {item.title}
+            </button>
+            <TypeChip type={item.type} />
+          </div>
           <div className="truncate text-xs text-muted-foreground xl:hidden">
             <span className="lg:hidden">{venueName(item.slot.venue)}</span>
             {item.slot.room && <span className="before:content-['_·_'] lg:before:content-none">{item.slot.room}</span>}
@@ -99,16 +104,43 @@ function ChecklistRow({ item, index }: { item: ChecklistItem; index: number }): 
             </SelectContent>
           </Select>
         </TableCell>
+        <TableCell>
+          <a
+            href={item.portalUrl}
+            target="_blank"
+            rel="noreferrer"
+            title={`Open ${item.code} in the official re:Invent catalog to reserve it`}
+            className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-accent"
+          >
+            Reserve <ExternalLink className="size-3" />
+          </a>
+        </TableCell>
       </TableRow>
       {failed && (
         <TableRow className="bg-destructive/5 hover:bg-destructive/5">
           <TableCell />
-          <TableCell colSpan={7} className="pt-0 whitespace-normal">
+          <TableCell colSpan={8} className="pt-0 whitespace-normal">
             <p className="mb-1.5 text-xs font-medium text-muted-foreground">Alternatives</p>
             <AlternativesList alternatives={item.alternatives} replaceItemId={item.itemId} />
           </TableCell>
         </TableRow>
       )}
     </Fragment>
+  );
+}
+
+// Hands-on formats (worth reserving first) get a filled chip with a wrench; talks an outlined one.
+function TypeChip({ type }: { type: string }): ReactNode {
+  const handsOn = isHandsOn(type);
+  return (
+    <span
+      className={cn(
+        'inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] whitespace-nowrap',
+        handsOn ? 'border-primary/30 bg-primary/10 text-primary' : 'text-muted-foreground',
+      )}
+    >
+      {handsOn && <Wrench className="size-3" aria-hidden />}
+      {type}
+    </span>
   );
 }

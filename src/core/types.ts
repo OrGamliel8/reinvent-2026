@@ -191,6 +191,7 @@ export interface Settings {
   weights: RankingWeights;
   theme: 'system' | 'light' | 'dark';
   recorded: Record<string, boolean>; // session type -> recorded?
+  maxVenueSwitchesPerDay: number; // 0..5; 0 = stay in one venue all day
 }
 
 // ---------- Ranking ----------
@@ -234,8 +235,15 @@ export interface RankedSession {
   computedScore: number;
   manualScore: number | null;
   explanation: MatchExplanation;
+  matchingSlotIds: string[]; // slots passing the slot-level filters (days, time window, venues); all slots when none is set
   starred: boolean;
   onAgenda: boolean;
+}
+
+// The slot a ranked session is listed and sorted by: its first timed matching slot, else its first matching one (TBA).
+export function firstMatchingSlot(r: RankedSession): Slot | undefined {
+  const matching = r.session.slots.filter((slot) => r.matchingSlotIds.includes(slot.slotId));
+  return matching.find((slot) => slot.start) ?? matching[0];
 }
 
 // ---------- Planning ----------
@@ -255,7 +263,7 @@ export interface Alternative {
   fit: SlotFit;
 }
 
-export type ConflictKind = 'overlap' | 'travel' | 'availability' | 'lunch' | 'dailyMax';
+export type ConflictKind = 'overlap' | 'travel' | 'availability' | 'lunch' | 'dailyMax' | 'venueSwitches';
 
 export interface Conflict {
   itemId: string;
@@ -263,6 +271,15 @@ export interface Conflict {
   withId: string | null; // the other agenda item or personal block id
   message: string;
   alternatives: Alternative[];
+}
+
+// One day of the agenda, for the calendar header.
+export interface DaySummary {
+  day: DayId;
+  sessions: number;
+  switches: number; // consecutive agenda items / personal blocks at different venues
+  maxSwitches: number;
+  route: VenueId[]; // venues in visiting order, consecutive repeats collapsed
 }
 
 export interface AutoBuildResult {
@@ -275,6 +292,9 @@ export interface ChecklistItem {
   sessionKey: string;
   code: string; // slot short code, for searching in the official portal
   title: string;
+  type: string; // session type, e.g. "Workshop"
+  starred: boolean;
+  portalUrl: string; // official catalog page filtered to this code, where it is reserved
   slot: Slot;
   scarcity: number;
   priority: number;
@@ -439,6 +459,7 @@ export interface PlannerApi {
 
   autoBuild(): AutoBuildResult;
   conflicts(): Conflict[];
+  daySummaries(): DaySummary[];
   alternatives(ref: { slotId: string } | { sessionKey: string }): Alternative[];
 
   personalBlocks(): PersonalBlock[];

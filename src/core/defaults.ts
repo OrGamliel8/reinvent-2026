@@ -1,7 +1,12 @@
 import { VENUES, type PersonalBlock, type Settings, type TravelTable, type VenueId } from './types';
 
 export const SOURCE_URL = 'https://reinvent-planner.cloud/api/aws/reinvent/2026/catalog';
-export const SESSION_LINK = 'https://reinvent-planner.cloud/';
+// Official catalog search; ?search=<code> filters to that session (verified for 2026, repeat codes included), where it can be reserved.
+const PORTAL_SEARCH_URL = 'https://registration.awsevents.com/flow/awsevents/reinvent2026/eventcatalog/page/eventcatalog?search=';
+
+export function portalUrl(code: string): string {
+  return PORTAL_SEARCH_URL + encodeURIComponent(code);
+}
 
 // Catalog venue displayName -> VenueId.
 export const VENUE_BY_NAME: Record<string, VenueId> = {
@@ -37,6 +42,7 @@ export const DEFAULT_SETTINGS: Settings = {
   weights: { text: 1, tags: 0.6, level: 0.2, format: 0.3 },
   theme: 'light',
   recorded: DEFAULT_RECORDED,
+  maxVenueSwitchesPerDay: 1,
 };
 
 export function travelKey(a: VenueId, b: VenueId): string {

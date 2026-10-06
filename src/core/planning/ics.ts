@@ -1,5 +1,5 @@
 // iCalendar (RFC 5545) export. Times are UTC; lines are CRLF-terminated and folded at 75 octets.
-import { SESSION_LINK, venueName } from '../defaults';
+import { portalUrl, venueName } from '../defaults';
 import { lvToUtc } from '../time';
 import type { PersonalBlock, Session, Slot } from '../types';
 
@@ -15,7 +15,7 @@ export function buildIcs({ sessions, blocks, now }: { sessions: IcsSessionEvent[
 
   for (const { uid, session, slot } of sessions) {
     if (!slot.start || !slot.end) continue;
-    const description = `${session.abstract}\n\nSession code: ${slot.code}\n${SESSION_LINK}`;
+    const description = `${session.abstract}\n\nSession code: ${slot.code}\n${portalUrl(slot.code)}`;
     lines.push(
       'BEGIN:VEVENT',
       `UID:${uid}@reinvent-2026-planner`,
@@ -25,7 +25,7 @@ export function buildIcs({ sessions, blocks, now }: { sessions: IcsSessionEvent[
       `SUMMARY:${escapeText(`${slot.code} – ${session.title}`)}`,
       `LOCATION:${escapeText([venueName(slot.venue), slot.room].filter(Boolean).join(', '))}`,
       `DESCRIPTION:${escapeText(description)}`,
-      `URL:${SESSION_LINK}`,
+      `URL:${portalUrl(slot.code)}`,
       'END:VEVENT',
     );
   }

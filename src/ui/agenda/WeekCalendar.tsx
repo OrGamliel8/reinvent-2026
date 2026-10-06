@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
-import { Footprints, Pin, PinOff, Star, Trash2 } from 'lucide-react';
-import { DAYS } from '@/core/types';
+import { ArrowLeftRight, Pin, PinOff, Star, Trash2, TriangleAlert } from 'lucide-react';
+import { DAYS, type DaySummary } from '@/core/types';
 import { cn } from '@/lib/utils';
 import { usePlanner } from '../PlannerProvider';
 import { useUi } from '../UiState';
-import { VENUE_COLORS, fmtMinutes, venueName } from '../format';
+import { VENUE_COLORS, fmtMinutes, venueName, venueShort } from '../format';
 import { OriginBadge } from '../shared/badges';
 import { placeDay, type BlockEntry, type CalendarEntry, type PlacedEntry, type SessionEntry, type TravelEntry } from './calendarModel';
 
@@ -16,9 +16,10 @@ interface WeekCalendarProps {
   entries: CalendarEntry[];
   conflictItemIds: Set<string>;
   starredKeys: Set<string>;
+  summaries: DaySummary[];
 }
 
-export function WeekCalendar({ entries, conflictItemIds, starredKeys }: WeekCalendarProps): ReactNode {
+export function WeekCalendar({ entries, conflictItemIds, starredKeys, summaries }: WeekCalendarProps): ReactNode {
   const hours = Array.from({ length: (GRID_END - GRID_START) / 60 + 1 }, (_, i) => GRID_START + i * 60);
   const height = (GRID_END - GRID_START) * PX_PER_MIN;
   return (
@@ -29,6 +30,7 @@ export function WeekCalendar({ entries, conflictItemIds, starredKeys }: WeekCale
           <div key={d.id} className="border-l px-2 py-1.5 text-xs font-medium">
             {d.label}
             <span className="ml-1.5 text-muted-foreground">{entries.filter((e) => e.day === d.id && e.type === 'session').length || ''}</span>
+            <SwitchBadge summary={summaries.find((s) => s.day === d.id)} />
           </div>
         ))}
       </div>
@@ -41,10 +43,15 @@ export function WeekCalendar({ entries, conflictItemIds, starredKeys }: WeekCale
           ))}
         </div>
         {DAYS.map((d) => (
-          <div key={d.id} className="relative border-l" style={{ height }}>
+          <div key={d.id} className="@container relative border-l" style={{ height }}>
             {hours.map((m) => (
               <div key={m} className="absolute inset-x-0 border-t border-border/50" style={{ top: (m - GRID_START) * PX_PER_MIN }} />
             ))}
+            {entries
+              .filter((e): e is TravelEntry => e.day === d.id && e.type === 'travel')
+              .map((entry) => (
+                <SwitchMarker key={`marker-${entry.id}`} entry={entry} overLimit={entry.switchNo > (summaries.find((s) => s.day === d.id)?.maxSwitches ?? Infinity)} />
+              ))}
             {placeDay(entries.filter((e) => e.day === d.id)).map((entry) => (
               <Positioned key={entry.id} entry={entry}>
                 <EntryCard
@@ -144,13 +151,53 @@ function TravelCard({ entry }: { entry: TravelEntry }): ReactNode {
   return (
     <div
       className={cn(
-        'flex h-full items-start gap-1 overflow-hidden rounded-sm px-1 text-[10px]',
-        entry.tight ? 'bg-destructive/10 text-destructive' : 'bg-[repeating-linear-gradient(135deg,var(--muted)_0_4px,transparent_4px_8px)] text-muted-foreground',
+        'h-full rounded-sm',
+        entry.tight ? 'bg-destructive/15' : 'bg-[repeating-linear-gradient(135deg,var(--muted)_0_4px,transparent_4px_8px)]',
       )}
-      title={`${venueName(entry.from)} → ${venueName(entry.to)}: ${entry.minutes} min${entry.tight ? ' (too tight)' : ''}`}
+      title={`Walking ${venueName(entry.from)} → ${venueName(entry.to)}: ${entry.minutes} min${entry.tight ? ' (too tight)' : ''}`}
+    />
+  );
+}
+
+function SwitchBadge({ summary }: { summary: DaySummary | undefined }): ReactNode {
+  if (!summary || summary.switches === 0) return null;
+  const over = summary.switches > summary.maxSwitches;
+  const route = summary.route.map(venueName).join(' → ');
+  const label = `${summary.switches} switch${summary.switches === 1 ? '' : 'es'}`;
+  return (
+    <div
+      className={cn(
+        'mt-0.5 flex w-fit max-w-full items-center gap-1 truncate rounded px-1.5 py-px text-[10px]',
+        over ? 'bg-destructive font-semibold text-white' : 'bg-muted text-muted-foreground',
+      )}
+      title={`${over ? `Over your limit of ${summary.maxSwitches} venue switch${summary.maxSwitches === 1 ? '' : 'es'} per day. ` : ''}Route: ${route}`}
     >
-      <Footprints className="size-3 shrink-0" />
-      <span className="truncate">{entry.minutes}m</span>
+      {over && <TriangleAlert className="size-3 shrink-0" />}
+      <span className="truncate">{over ? `${label} · max ${summary.maxSwitches}` : label}</span>
+    </div>
+  );
+}
+
+// A bold pill in the middle of the gap between two entries at different venues; red when over the daily limit or too tight.
+function SwitchMarker({ entry, overLimit }: { entry: TravelEntry; overLimit: boolean }): ReactNode {
+  const middle = (entry.startMin + entry.gapEndMin) / 2;
+  if (middle < GRID_START || middle > GRID_END) return null;
+  const problem = entry.tight ? ' (gap too short to travel)' : overLimit ? ' (over your daily venue-switch limit)' : '';
+  return (
+    <div className="pointer-events-none absolute inset-x-0 z-20 flex -translate-y-1/2 justify-center px-1" style={{ top: (middle - GRID_START) * PX_PER_MIN }}>
+      <span
+        className={cn(
+          'pointer-events-auto flex max-w-full items-center gap-1 truncate rounded-full border px-1.5 py-px text-[10px] leading-4 font-semibold shadow-sm',
+          entry.tight ? 'border-destructive bg-destructive text-white' : overLimit ? 'border-destructive bg-background text-destructive' : 'border-foreground bg-foreground text-background',
+        )}
+        title={`Venue switch: ${venueName(entry.from)} → ${venueName(entry.to)}, ${entry.minutes} min walk, ${entry.gapEndMin - entry.startMin} min gap${problem}`}
+      >
+        <ArrowLeftRight className="size-3 shrink-0" />
+        <span className="truncate">
+          {venueShort(entry.from)} → {venueShort(entry.to)}
+          <span className="hidden @[9rem]:inline"> · {entry.minutes}m</span>
+        </span>
+      </span>
     </div>
   );
 }

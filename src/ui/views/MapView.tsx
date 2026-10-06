@@ -39,14 +39,14 @@ export function MapView(): ReactNode {
     const byVenue = new Map<VenueId, OnNow[]>(VENUES.map((v) => [v.id, []]));
     for (const r of ranked ?? []) {
       for (const slot of r.session.slots) {
-        if (slot.day !== day || !slot.start || !slot.end || !slot.venue) continue;
+        if (!r.matchingSlotIds.includes(slot.slotId) || !slot.start || !slot.end || !slot.venue) continue;
         if (lvMinutes(slot.start) <= minute && minute < lvMinutes(slot.end)) {
           byVenue.get(slot.venue)?.push({ key: r.session.key, code: slot.code, title: r.session.title, start: slot.start, end: slot.end });
         }
       }
     }
     return byVenue;
-  }, [ranked, day, minute]);
+  }, [ranked, minute]);
 
   const coords = new Map(VENUES.map((v) => [v.id, [v.lat, v.lng] as [number, number]]));
   const path = (route ?? []).map((stop) => coords.get(stop.venue)!);

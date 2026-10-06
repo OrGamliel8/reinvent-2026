@@ -1,9 +1,9 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { PanelRightClose, PanelRightOpen, Sparkles } from 'lucide-react';
+import { PanelRightClose, PanelRightOpen, Sparkles, TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import type { AutoBuildResult, Session } from '@/core/types';
+import { DAYS, type AutoBuildResult, type DaySummary, type Session } from '@/core/types';
 import { usePlanner, usePlannerQuery } from '../PlannerProvider';
 import { WeekCalendar } from './WeekCalendar';
 import { ConflictsPanel } from './ConflictsPanel';
@@ -13,6 +13,7 @@ import { ExportControls } from './ExportControls';
 import { buildEntries } from './calendarModel';
 
 const NO_STARS = new Set<string>();
+const NO_SUMMARIES: DaySummary[] = [];
 
 export function AgendaView(): ReactNode {
   const { mutate } = usePlanner();
@@ -23,10 +24,17 @@ export function AgendaView(): ReactNode {
   const [panelOpen, setPanelOpen] = useState(() => window.innerWidth >= 1200);
 
   const { data } = usePlannerQuery(async (api) => {
-    const [agenda, blocks, travel, conflicts, starred] = await Promise.all([api.agenda(), api.personalBlocks(), api.travelTable(), api.conflicts(), api.starred()]);
+    const [agenda, blocks, travel, conflicts, starred, summaries] = await Promise.all([
+      api.agenda(),
+      api.personalBlocks(),
+      api.travelTable(),
+      api.conflicts(),
+      api.starred(),
+      api.daySummaries(),
+    ]);
     const keys = [...new Set(agenda.map((i) => i.sessionKey))];
     const sessions = await Promise.all(keys.map((k) => api.session(k)));
-    return { agenda, blocks, travel, conflicts, starred: new Set(starred), sessions: new Map(sessions.filter((s): s is Session => s !== null).map((s) => [s.key, s])) };
+    return { agenda, blocks, travel, conflicts, summaries, starred: new Set(starred), sessions: new Map(sessions.filter((s): s is Session => s !== null).map((s) => [s.key, s])) };
   }, []);
 
   const entries = useMemo(() => (data ? buildEntries(data.agenda, data.sessions, data.blocks, data.travel) : []), [data]);
@@ -48,6 +56,7 @@ export function AgendaView(): ReactNode {
     }
   };
 
+  const overLimit = data?.summaries.filter((d) => d.switches > d.maxSwitches) ?? [];
   const unscheduled = data ? data.agenda.length - entries.filter((e) => e.type === 'session').length : 0;
 
   return (
@@ -76,8 +85,9 @@ export function AgendaView(): ReactNode {
             </Button>
           </div>
         </div>
+        {overLimit.length > 0 && <SwitchWarning days={overLimit} building={building} onRebuild={() => void autoBuild()} />}
         <div className="min-h-0 flex-1 overflow-auto">
-          <WeekCalendar entries={entries} conflictItemIds={conflictIds} starredKeys={data?.starred ?? NO_STARS} />
+          <WeekCalendar entries={entries} conflictItemIds={conflictIds} starredKeys={data?.starred ?? NO_STARS} summaries={data?.summaries ?? NO_SUMMARIES} />
         </div>
       </div>
       <aside className={cn('w-80 shrink-0 flex-col border-l bg-sidebar xl:w-96', panelOpen ? 'flex' : 'hidden')}>
@@ -104,6 +114,21 @@ export function AgendaView(): ReactNode {
           </TabsContent>
         </Tabs>
       </aside>
+    </div>
+  );
+}
+
+function SwitchWarning({ days, building, onRebuild }: { days: DaySummary[]; building: boolean; onRebuild: () => void }): ReactNode {
+  const list = days.map((d) => `${DAYS.find((x) => x.id === d.day)?.label.slice(0, 3)} (${d.switches})`).join(', ');
+  return (
+    <div role="alert" className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-destructive/30 bg-destructive/10 px-4 py-1.5 text-xs text-destructive">
+      <TriangleAlert className="size-4 shrink-0" />
+      <span className="min-w-0 flex-1">
+        <strong>Too many venue switches</strong> (max {days[0].maxSwitches} a day): {list}
+      </span>
+      <Button size="xs" variant="outline" onClick={onRebuild} disabled={building}>
+        Re-run auto-build
+      </Button>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 // Display helpers. All times render in Las Vegas local time, regardless of the laptop's zone.
 import { DAYS, VENUES, type DayId, type Slot, type VenueId } from '@/core/types';
+import { HANDS_ON_TYPES } from '@/core/defaults';
 import { LV_TIME_ZONE, lvDay as coreLvDay, lvTime, toMinutes } from '@/core/time';
 
 const LV_TZ = LV_TIME_ZONE;
@@ -65,6 +66,12 @@ export function venueName(venue: VenueId | null): string {
   return VENUES.find((v) => v.id === venue)?.name ?? '—';
 }
 
+const VENUE_SHORT: Record<VenueId, string> = { venetian: 'Venetian', wynn: 'Wynn', 'caesars-forum': 'Forum', 'caesars-palace': 'Palace', mgm: 'MGM' };
+
+export function venueShort(venue: VenueId | null): string {
+  return venue ? VENUE_SHORT[venue] : '—';
+}
+
 export function slotWhen(slot: Pick<Slot, 'day' | 'start' | 'end'>): string {
   return slot.start ? `${dayShort(slot.day)} ${fmtRange(slot.start, slot.end)}` : 'TBA';
 }
@@ -81,3 +88,25 @@ export const VENUE_COLORS: Record<VenueId, string> = {
   'caesars-palace': '#db2777',
   mgm: '#16a34a',
 };
+
+// Compact session-type marks for the timeline, hands-on formats first.
+export const TYPE_ABBR: Record<string, string> = {
+  Workshop: 'WS',
+  "Builders' session": 'BS',
+  Lab: 'LAB',
+  Bootcamp: 'BC',
+  'Gamified learning': 'GL',
+  'Code talk': 'CODE',
+  'Chalk talk': 'CT',
+  'Breakout session': 'BO',
+  'Lightning talk': 'LT',
+  'Exam prep': 'EP',
+};
+
+export function typeAbbr(type: string): string {
+  return TYPE_ABBR[type] ?? type.split(/\s+/).map((word) => word.charAt(0).toUpperCase()).join('');
+}
+
+export function isHandsOn(type: string): boolean {
+  return HANDS_ON_TYPES.has(type);
+}

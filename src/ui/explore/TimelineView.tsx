@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
-import { CalendarX2, Star } from 'lucide-react';
+import { CalendarX2, Star, Wrench } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useUi } from '../UiState';
-import { VENUE_COLORS, fmtMinutes, fmtRange } from '../format';
+import { TYPE_ABBR, VENUE_COLORS, fmtMinutes, fmtRange, isHandsOn, typeAbbr } from '../format';
 import { DayPicker } from '../shared/DayPicker';
 import { EmptyState } from '../shared/EmptyState';
 import { useExploreFilters } from './ExploreFilters';
@@ -74,7 +75,57 @@ function TimelineFooter({ data }: { data: TimelineData | undefined }): ReactNode
         <span className="ml-1.5 inline-block size-2.5 rounded-sm bg-primary" /> on agenda
         <Star className="ml-1.5 size-3 fill-warning text-warning" /> starred
       </span>
+      <TypesLegend />
     </footer>
+  );
+}
+
+function TypesLegend(): ReactNode {
+  return (
+    <Popover>
+      <PopoverTrigger className="flex shrink-0 items-center gap-1 rounded px-1 hover:text-foreground">
+        <TypeBadge type="Workshop" />
+        <TypeBadge type="Chalk talk" />
+        Types
+      </PopoverTrigger>
+      <PopoverContent side="top" align="end" className="w-60 p-3 text-xs">
+        <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1.5">
+          {Object.keys(TYPE_ABBR).map((type) => (
+            <TypeRow key={type} type={type} />
+          ))}
+        </div>
+        <p className="mt-2 text-muted-foreground">Solid with a wrench = hands-on; outlined = talk.</p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function TypeRow({ type }: { type: string }): ReactNode {
+  return (
+    <>
+      <span className="justify-self-start">
+        <TypeBadge type={type} />
+      </span>
+      {type}
+    </>
+  );
+}
+
+// Hands-on formats get a solid badge with a wrench, talks an outlined one; both take the surrounding text colour, and the
+// solid one's label uses the colour underneath (`onPrimary` = sitting on a primary-coloured block).
+function TypeBadge({ type, onPrimary = false }: { type: string; onPrimary?: boolean }): ReactNode {
+  const handsOn = isHandsOn(type);
+  const knockout = onPrimary ? 'text-primary' : 'text-background';
+  return (
+    <span
+      className={cn(
+        'inline-flex shrink-0 items-center gap-0.5 rounded-[3px] border border-current px-[3px] py-px font-sans text-[9px] leading-none font-semibold tracking-wide',
+        handsOn && 'bg-current',
+      )}
+    >
+      {handsOn && <Wrench className={cn('size-2.5', knockout)} aria-hidden />}
+      <span className={cn(handsOn && knockout)}>{typeAbbr(type)}</span>
+    </span>
   );
 }
 
@@ -120,7 +171,7 @@ function TimelineBlock({ block }: { block: Block }): ReactNode {
   return (
     <button
       onClick={() => openSession(block.key)}
-      title={`${block.starred ? '★ ' : ''}${block.code} · ${block.title}\n${fmtRange(block.start, block.end)}`}
+      title={`${block.starred ? '★ ' : ''}${block.code} · ${block.title}\n${block.type} · ${fmtRange(block.start, block.end)}`}
       className={cn(
         'absolute flex items-center overflow-hidden rounded-[4px] border px-1.5 text-left text-[11px] leading-none whitespace-nowrap hover:z-10 hover:ring-2 hover:ring-ring',
         block.onAgenda ? 'border-primary bg-primary font-medium text-primary-foreground' : 'border-transparent text-foreground',
@@ -134,6 +185,9 @@ function TimelineBlock({ block }: { block: Block }): ReactNode {
         background: block.onAgenda ? undefined : `${color}${alpha}`,
       }}
     >
+      <span className="mr-1 flex shrink-0">
+        <TypeBadge type={block.type} onPrimary={block.onAgenda} />
+      </span>
       {block.starred && <Star aria-label="Starred" className="mr-0.5 size-3 shrink-0 fill-warning text-warning" />}
       <span className="mr-1 font-mono opacity-70">{block.code}</span>
       <span className="truncate">{block.title}</span>

@@ -15,6 +15,21 @@ describe('reservation checklist', () => {
     expect(checklist[0].scarcity).toBeGreaterThan(checklist[3].scarcity);
   });
 
+  it('shows each item\'s type, star and a link to its code in the official catalog', async () => {
+    const { planner } = await openPlanner();
+    add(planner, 'ANT319-R1');
+    add(planner, 'SEC401');
+    planner.star('SEC401');
+    const byCode = new Map(planner.reservationChecklist().map((c) => [c.code, c]));
+    expect(byCode.get('SEC401')).toMatchObject({
+      type: 'Workshop',
+      starred: true,
+      portalUrl: 'https://registration.awsevents.com/flow/awsevents/reinvent2026/eventcatalog/page/eventcatalog?search=SEC401',
+    });
+    expect(byCode.get('ANT319-R1')).toMatchObject({ type: 'Chalk talk', starred: false });
+    expect(byCode.get('ANT319-R1')!.portalUrl).toMatch(/search=ANT319-R1$/);
+  });
+
   it('tracks statuses and suggests alternatives for failed reservations', async () => {
     const { planner } = await openPlanner();
     const sec = add(planner, 'SEC310');

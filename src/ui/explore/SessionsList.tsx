@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, SearchX } from 'lucide-react';
 import { createColumnHelper, tableFeatures, useTable } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import type { RankedSession, SortBy } from '@/core/types';
+import { firstMatchingSlot, type RankedSession, type SortBy } from '@/core/types';
 import { cn } from '@/lib/utils';
 import { usePlannerQuery } from '../PlannerProvider';
 import { useUi } from '../UiState';
@@ -20,10 +20,6 @@ const NO_ROWS: RankedSession[] = [];
 
 const features = tableFeatures({});
 const helper = createColumnHelper<typeof features, RankedSession>();
-
-function firstTimedSlot(row: RankedSession): RankedSession['session']['slots'][number] | undefined {
-  return row.session.slots.find((s) => s.start) ?? row.session.slots[0];
-}
 
 const columns = helper.columns([
   helper.display({ id: 'star', header: '', cell: ({ row }) => <StarButton sessionKey={row.original.session.key} starred={row.original.starred} /> }),
@@ -45,9 +41,9 @@ const columns = helper.columns([
   helper.display({ id: 'type', header: 'Type', cell: ({ row }) => <span className="text-xs">{row.original.session.type}</span> }),
   helper.display({ id: 'level', header: 'Level', cell: ({ row }) => <span className="font-mono text-xs">{levelLabel(row.original.session.level)}</span> }),
   helper.display({ id: 'time', header: 'Day / time', cell: ({ row }) => <WhenCell row={row.original} /> }),
-  helper.display({ id: 'venue', header: 'Venue', cell: ({ row }) => <span className="text-xs whitespace-nowrap">{venueName(firstTimedSlot(row.original)?.venue ?? null)}</span> }),
-  helper.display({ id: 'seats', header: 'Seats', cell: ({ row }) => <span className="font-mono text-xs tabular-nums">{firstTimedSlot(row.original)?.seats ?? '—'}</span> }),
-  helper.display({ id: 'add', header: '', cell: ({ row }) => <AddSlotMenu session={row.original.session} /> }),
+  helper.display({ id: 'venue', header: 'Venue', cell: ({ row }) => <span className="text-xs whitespace-nowrap">{venueName(firstMatchingSlot(row.original)?.venue ?? null)}</span> }),
+  helper.display({ id: 'seats', header: 'Seats', cell: ({ row }) => <span className="font-mono text-xs tabular-nums">{firstMatchingSlot(row.original)?.seats ?? '—'}</span> }),
+  helper.display({ id: 'add', header: '', cell: ({ row }) => <AddSlotMenu session={row.original.session} matchingSlotIds={row.original.matchingSlotIds} /> }),
 ]);
 
 const SORTABLE: Partial<Record<string, SortBy>> = { score: 'score', time: 'time', level: 'level', venue: 'venue', seats: 'seats' };
@@ -85,12 +81,17 @@ function TitleCell({ row }: { row: RankedSession }): ReactNode {
 }
 
 function WhenCell({ row }: { row: RankedSession }): ReactNode {
-  const slot = firstTimedSlot(row);
-  const more = row.session.slots.filter((s) => s.start).length - 1;
+  // The first slot matching the filters; "+N" = the session's other timed slots.
+  const slot = firstMatchingSlot(row);
+  const others = row.session.slots.filter((s) => s.start && s.slotId !== slot?.slotId);
   return (
     <span className="text-xs whitespace-nowrap">
-      {slot ? slotWhen(slot) : 'TBA'}
-      {more > 0 && <span className="ml-1 text-muted-foreground">+{more}</span>}
+      {slot?.start ? slotWhen(slot) : 'TBA'}
+      {others.length > 0 && (
+        <span className="ml-1 text-muted-foreground" title={`Also: ${others.map(slotWhen).join(', ')}`}>
+          +{others.length}
+        </span>
+      )}
     </span>
   );
 }

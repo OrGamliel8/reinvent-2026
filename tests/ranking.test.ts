@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { firstMatchingSlot } from '../src/core/types';
 import { add, fixtureProfile, openPlanner } from './helpers';
 
 describe('ranking', () => {
@@ -130,11 +131,28 @@ describe('ranking', () => {
     const byTime = planner.rank({ sort: { by: 'time', dir: 'asc' } });
     expect(byTime.slice(0, 2).map((r) => r.session.key)).toEqual(['SEC401', 'ANT319']); // same start, higher score first
     expect(byTime[byTime.length - 1].session.key).toBe('IAM333'); // TBA last
-    const seats = planner.rank({ sort: { by: 'seats', dir: 'desc' } }).map((r) => Math.max(...r.session.slots.map((s) => s.seats ?? 0)));
+    const seats = planner.rank({ sort: { by: 'seats', dir: 'desc' } }).map((r) => firstMatchingSlot(r)?.seats ?? 0);
     for (let i = 1; i < seats.length; i++) expect(seats[i - 1]).toBeGreaterThanOrEqual(seats[i]);
     expect(planner.rank({ sort: { by: 'level', dir: 'asc' } })[0].session.level).toBe(100);
     expect(planner.rank({ sort: { by: 'venue', dir: 'asc' }, limit: 1 })[0].session.slots[0].venue).toBe('caesars-forum');
     expect(planner.rank({ limit: 3 })).toHaveLength(3);
+  });
+
+  it('shows and sorts a repeat session by the slot that matches the day filter', async () => {
+    const { planner } = await openPlanner();
+    const ant319 = planner.session('ANT319')!;
+    const wednesday = ant319.slots.find((s) => s.day === 'wed')!;
+
+    expect(planner.rank({}).find((r) => r.session.key === 'ANT319')!.matchingSlotIds).toEqual(ant319.slots.map((s) => s.slotId));
+
+    const byTime = planner.rank({ days: ['wed'], sort: { by: 'time', dir: 'asc' } });
+    const ranked = byTime.find((r) => r.session.key === 'ANT319')!;
+    expect(ranked.matchingSlotIds).toEqual([wednesday.slotId]);
+    expect(firstMatchingSlot(ranked)?.code).toBe('ANT319-R1');
+    const starts = byTime.map((r) => firstMatchingSlot(r)!);
+    for (const slot of starts) expect(slot.day).toBe('wed');
+    for (let i = 1; i < starts.length; i++) expect(starts[i - 1].start! <= starts[i].start!).toBe(true);
+    expect(byTime[0].session.key).not.toBe('ANT319'); // its Monday slot no longer puts it first
   });
 
   it('works without a profile', async () => {

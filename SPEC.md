@@ -172,8 +172,9 @@ Greedy, deterministic, and explainable:
    - leaves enough travel time from the previous item's venue and to the next item's venue, using the travel table
    - is inside my availability and outside lunch
    - stays under my daily maximum
+   - doesn't push the day above my max venue switches (default 1; a switch = two consecutive items or located blocks at different venues; pinned items may exceed it and are flagged as a `venueSwitches` conflict)
 
-   Among feasible slots, prefer the one with the least added travel.
+   Among feasible slots, prefer the one with the fewest added venue switches, then the least added travel.
 3. **Swap pass:** for each unplaced starred session, try moving already-placed non-pinned items to their alternative slots to free room.
 4. **Report** the starred sessions that remain unplaced, with the blocking reason.
 

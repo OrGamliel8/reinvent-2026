@@ -1,13 +1,26 @@
 // Planner core: the single deep module the UI talks to. Opened with a Catalog Repository and a User Store.
 import type { CatalogRepository } from './catalog/catalogRepository';
-import { DEFAULT_RECORDED, DEFAULT_SETTINGS, DEFAULT_TRAVEL, HANDS_ON_TYPES, KEYNOTE_PRESETS, travelKey, venueName } from './defaults';
+import { DEFAULT_RECORDED, DEFAULT_SETTINGS, DEFAULT_TRAVEL, HANDS_ON_TYPES, KEYNOTE_PRESETS, portalUrl, travelKey, venueName } from './defaults';
 import { buildAgendaExport, importBlocks, resolveAgendaImport } from './planning/agendaTransfer';
 import { autoBuild } from './planning/autoBuild';
 import { buildCompare, type ComparePlan } from './planning/compare';
 import { buildIcs } from './planning/ics';
 import { applyManualScores, scoreSessions, type ScoredSession } from './planning/ranking';
 import { buildSharedPlanExport, parseSharedPlan } from './planning/sharing';
-import { blockEvent, describeSlot, findProblems, fingerprintOf, fitOf, sameFingerprint, slotEvent, type PlanningContext, type TimedEvent } from './planning/schedule';
+import {
+  blockEvent,
+  dayRoute,
+  describeSlot,
+  findProblems,
+  fingerprintOf,
+  fitOf,
+  routeVenues,
+  sameFingerprint,
+  slotEvent,
+  venueSwitches,
+  type PlanningContext,
+  type TimedEvent,
+} from './planning/schedule';
 import { buildCopyPrompt, buildDraftPrompt } from './profile/copyPrompt';
 import { draftFromProfile, profileFromDraft } from './profile/draft';
 import { uniqueName } from './profile/uniqueName';
@@ -16,7 +29,9 @@ import { AgendaExportSchema, PersonalBlockSchema, SettingsSchema, STATE_KIND, St
 import { restoreStore, snapshotStore, type UserStore } from './store/userStore';
 import { lvTime } from './time';
 import {
+  DAYS,
   ME,
+  firstMatchingSlot,
   type AgendaImportOptions,
   type AgendaImportReport,
   type AgendaItem,
@@ -27,6 +42,7 @@ import {
   type ChecklistItem,
   type CompareResult,
   type Conflict,
+  type DaySummary,
   type Filters,
   type IcsOptions,
   type PersonalBlock,
@@ -139,7 +155,8 @@ export class Planner implements PlannerApi {
       if (!filters.showAvoided && scored.excluded) continue;
       if (hits && !hits.has(session.key)) continue;
       if (!matchesTags(session, filters)) continue;
-      if (slotFiltered && !session.slots.some((slot) => this.slotMatches(slot, filters))) continue;
+      const matching = slotFiltered ? session.slots.filter((slot) => this.slotMatches(slot, filters)) : session.slots;
+      if (slotFiltered && matching.length === 0) continue;
       if (filters.starredOnly && !stars.has(session.key)) continue;
       if (filters.onAgendaOnly && !onAgenda.has(session.key)) continue;
       if (filters.tbaOnly && !session.tba) continue;
@@ -147,7 +164,13 @@ export class Planner implements PlannerApi {
       if (filters.hideConflicting && !onAgenda.has(session.key) && !session.tba && !session.slots.some((slot) => this.fitAgainst(slot, events, ctx) === 'free')) {
         continue;
       }
-      ranked.push({ session, ...rankedScores(scored), starred: stars.has(session.key), onAgenda: onAgenda.has(session.key) });
+      ranked.push({
+        session,
+        ...rankedScores(scored),
+        matchingSlotIds: matching.map((slot) => slot.slotId),
+        starred: stars.has(session.key),
+        onAgenda: onAgenda.has(session.key),
+      });
     }
     sortRanked(ranked, filters.sort ?? { by: 'score', dir: 'desc' });
     return filters.limit ? ranked.slice(0, filters.limit) : ranked;
@@ -161,6 +184,7 @@ export class Planner implements PlannerApi {
     return {
       session,
       ...rankedScores(scored),
+      matchingSlotIds: session.slots.map((slot) => slot.slotId),
       starred: this.store.getStars().includes(sessionKey),
       onAgenda: items.some((i) => i.sessionKey === sessionKey),
     };
@@ -307,7 +331,41 @@ export class Planner implements PlannerApi {
         conflicts.push({ itemId: item.id, kind: problem.kind, withId: problem.withId, message: problem.message, alternatives: alternatives.get(item.slotId)! });
       }
     }
+    return [...conflicts, ...this.venueSwitchConflicts(items, events, ctx.maxVenueSwitches)];
+  }
+
+  // Flags the item on each switch beyond the daily limit; alternatives at a neighbouring item's venue come first.
+  private venueSwitchConflicts(items: AgendaItem[], events: TimedEvent[], max: number): Conflict[] {
+    const conflicts: Conflict[] = [];
+    for (const { id: day, label } of DAYS) {
+      const switches = venueSwitches(events, day);
+      if (switches.length <= max) continue;
+      const route = dayRoute(events, day);
+      const message = `${switches.length} venue switches on ${label.slice(0, 3)} (max ${max}): ${routeVenues(events, day).map(venueName).join(' → ')}`;
+      for (const [from, to] of switches.slice(max)) {
+        const [flagged, other] = to.kind === 'item' ? [to, from] : [from, to];
+        const item = items.find((i) => i.id === flagged.id);
+        if (!item) continue;
+        const index = route.indexOf(flagged);
+        const neighbours = new Set([route[index - 1]?.venue, route[index + 1]?.venue].filter((v) => v && v !== flagged.venue));
+        const near = (a: Alternative): number => (a.venue && neighbours.has(a.venue) ? 0 : 1);
+        const alternatives = this.alternatives({ slotId: item.slotId }).sort((a, b) => FIT_ORDER[a.fit] - FIT_ORDER[b.fit] || near(a) - near(b));
+        conflicts.push({ itemId: item.id, kind: 'venueSwitches', withId: other.id, message, alternatives });
+      }
+    }
     return conflicts;
+  }
+
+  daySummaries(): DaySummary[] {
+    const events = this.planEvents(this.agenda());
+    const maxSwitches = this.settings().maxVenueSwitchesPerDay;
+    return DAYS.map(({ id: day }) => ({
+      day,
+      sessions: events.filter((e) => e.day === day && e.kind === 'item').length,
+      switches: venueSwitches(events, day).length,
+      maxSwitches,
+      route: routeVenues(events, day),
+    }));
   }
 
   alternatives(ref: { slotId: string } | { sessionKey: string }): Alternative[] {
@@ -428,6 +486,9 @@ export class Planner implements PlannerApi {
         sessionKey: session.key,
         code: slot.code,
         title: session.title,
+        type: session.type,
+        starred: stars.has(session.key),
+        portalUrl: portalUrl(slot.code),
         slot,
         scarcity,
         priority,
@@ -725,7 +786,7 @@ export class Planner implements PlannerApi {
   }
 
   private ctx(): PlanningContext {
-    return { travel: this.travelTable(), availability: this.store.getProfile()?.availability ?? null };
+    return { travel: this.travelTable(), availability: this.store.getProfile()?.availability ?? null, maxVenueSwitches: this.settings().maxVenueSwitchesPerDay };
   }
 
   private planEvents(items: AgendaItem[]): TimedEvent[] {
@@ -792,23 +853,20 @@ function matchesTags(session: Session, filters: Filters): boolean {
 }
 
 function sortRanked(list: RankedSession[], sort: NonNullable<Filters['sort']>): void {
-  const firstSlot = (s: Session): Slot | undefined => s.slots.find((slot) => slot.start);
   const value = (r: RankedSession): number | string | null => {
     switch (sort.by) {
       case 'score':
         return r.score;
       case 'time':
-        return firstSlot(r.session)?.start ?? null;
+        return firstMatchingSlot(r)?.start ?? null;
       case 'level':
         return r.session.level;
       case 'venue': {
-        const venue = firstSlot(r.session)?.venue;
+        const venue = firstMatchingSlot(r)?.venue;
         return venue ? venueName(venue) : null;
       }
-      case 'seats': {
-        const seats = r.session.slots.map((s) => s.seats).filter((n): n is number => n !== null);
-        return seats.length ? Math.max(...seats) : null;
-      }
+      case 'seats':
+        return firstMatchingSlot(r)?.seats ?? null;
     }
   };
   const direction = sort.dir === 'asc' ? 1 : -1;

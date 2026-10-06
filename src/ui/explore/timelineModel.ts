@@ -1,6 +1,5 @@
 // Pure helpers for the Explore timeline: which slots of the filtered sessions land on the grid, and where.
 import { VENUES, type DayId, type Filters, type RankedSession, type Slot, type VenueId } from '@/core/types';
-import { lvTime } from '@/core/time';
 import { lvMinutes } from '../format';
 import { packRows } from '../views/timelineLayout';
 
@@ -12,6 +11,7 @@ export interface Block {
   slotId: string;
   code: string;
   title: string;
+  type: string; // session type, e.g. "Workshop"
   start: string;
   end: string;
   startMin: number;
@@ -34,27 +34,25 @@ export function timelineFilters(filters: Filters, day: DayId): Filters {
   return { ...filters, days: [day], sort: { by: 'score', dir: 'desc' }, limit: undefined };
 }
 
-// Same slot rule the planner applies when filtering (day, venue, Las Vegas time window), so a session matched by
-// one slot doesn't drag its other slots (other venue, other hour) onto the grid.
-function slotShown(slot: Slot, filters: Filters, day: DayId): slot is Slot & { start: string; end: string; venue: VenueId } {
-  if (!slot.start || !slot.end || !slot.venue || slot.day !== day) return false;
-  if (filters.venues?.length && !filters.venues.includes(slot.venue)) return false;
-  if (filters.timeFrom && lvTime(slot.start) < filters.timeFrom) return false;
-  if (filters.timeTo && lvTime(slot.end) > filters.timeTo) return false;
-  return true;
+// Only the slots the planner matched (day, venue, Las Vegas time window), so a session matched by one slot doesn't drag
+// its other slots (other venue, other hour) onto the grid.
+function slotShown(slot: Slot, r: RankedSession): slot is Slot & { start: string; end: string; venue: VenueId } {
+  return !!(slot.start && slot.end && slot.venue) && r.matchingSlotIds.includes(slot.slotId);
 }
 
-export function buildLanes(ranked: RankedSession[], filters: Filters, day: DayId, agendaSlots: Set<string>): Lane[] {
+// `ranked` must come from rank(timelineFilters(...)), so the matching slots are that day's.
+export function buildLanes(ranked: RankedSession[], agendaSlots: Set<string>): Lane[] {
   const maxScore = ranked.reduce((m, r) => Math.max(m, r.score), 0) || 1;
   const blocks: Omit<Block, 'row'>[] = [];
   for (const r of ranked) {
     for (const slot of r.session.slots) {
-      if (!slotShown(slot, filters, day)) continue;
+      if (!slotShown(slot, r)) continue;
       blocks.push({
         key: r.session.key,
         slotId: slot.slotId,
         code: slot.code,
         title: r.session.title,
+        type: r.session.type,
         start: slot.start,
         end: slot.end,
         startMin: Math.max(DAY_START, lvMinutes(slot.start)),

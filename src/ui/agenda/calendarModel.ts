@@ -30,6 +30,8 @@ export interface TravelEntry extends EntryBase {
   from: VenueId;
   to: VenueId;
   minutes: number;
+  gapEndMin: number; // start of the next entry
+  switchNo: number; // 1 = the day's first venue switch
   tight: boolean; // the gap between the two entries is shorter than the travel time
 }
 
@@ -51,15 +53,18 @@ export function buildEntries(items: AgendaItem[], sessions: Map<string, Session>
   return [...entries, ...travelGaps(entries, travel)];
 }
 
+// One entry per venue switch: consecutive entries of a day (in time order) at different venues.
 function travelGaps(entries: (SessionEntry | BlockEntry)[], travel: TravelTable): TravelEntry[] {
   const gaps: TravelEntry[] = [];
-  const located = entries.filter((e) => e.venue).sort((a, b) => a.day.localeCompare(b.day) || a.startMin - b.startMin);
+  const located = entries.filter((e) => e.venue).sort((a, b) => a.day.localeCompare(b.day) || a.startMin - b.startMin || a.endMin - b.endMin);
+  let switchNo = 0;
   for (let i = 1; i < located.length; i++) {
     const prev = located[i - 1];
     const next = located[i];
+    if (prev.day !== next.day) switchNo = 0;
     if (prev.day !== next.day || prev.venue === next.venue) continue;
     const minutes = travelMinutes(travel, prev.venue, next.venue);
-    if (minutes <= 0) continue;
+    switchNo++;
     gaps.push({
       type: 'travel',
       id: `travel-${prev.id}-${next.id}`,
@@ -70,6 +75,8 @@ function travelGaps(entries: (SessionEntry | BlockEntry)[], travel: TravelTable)
       from: prev.venue!,
       to: next.venue!,
       minutes,
+      gapEndMin: next.startMin,
+      switchNo,
       tight: next.startMin - prev.endMin < minutes,
     });
   }

@@ -28,6 +28,7 @@ export function SettingsView(): ReactNode {
         <WeightsSection key={JSON.stringify(data.settings.weights)} settings={data.settings} />
         <RecordedSection settings={data.settings} types={types} />
         <TravelSection travel={data.travel} />
+        <VenueSwitchesSection settings={data.settings} />
         <ThemeSection />
         <AboutSection />
       </div>
@@ -137,6 +138,29 @@ function TravelSection({ travel }: { travel: TravelTable }): ReactNode {
         </table>
       </div>
       <p className="text-xs text-muted-foreground">The table is symmetric: editing one cell updates its mirror.</p>
+    </section>
+  );
+}
+
+function VenueSwitchesSection({ settings }: { settings: Settings }): ReactNode {
+  const { mutate } = usePlanner();
+  const save = (value: string): void => {
+    if (value) void mutate((api) => api.updateSettings({ ...settings, maxVenueSwitchesPerDay: Number(value) }));
+  };
+  return (
+    <section className="space-y-3">
+      <SectionTitle>Max venue switches per day</SectionTitle>
+      <ToggleGroup type="single" variant="outline" size="sm" value={String(settings.maxVenueSwitchesPerDay)} onValueChange={save} aria-label="Max venue switches per day">
+        {['0', '1', '2', '3'].map((n) => (
+          <ToggleGroupItem key={n} value={n} className="w-10">
+            {n}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      <p className="text-xs text-muted-foreground">
+        A switch is moving to a different hotel between two consecutive items (sessions or personal blocks with a venue). Auto-build never goes over this
+        limit; 0 keeps each day in one venue. Pinned items are left alone, and days over the limit are flagged in My Agenda.
+      </p>
     </section>
   );
 }

@@ -10,6 +10,7 @@ const KIND_LABEL: Record<ConflictKind, string> = {
   availability: 'Outside availability',
   lunch: 'Lunch',
   dailyMax: 'Over daily max',
+  venueSwitches: 'Venue switches',
 };
 
 export function ConflictsPanel({ conflicts, titles }: { conflicts: Conflict[]; titles: Map<string, string> }): ReactNode {
