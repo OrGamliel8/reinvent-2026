@@ -1,6 +1,8 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { PanelRightClose, PanelRightOpen, Sparkles, TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { DAYS, type AutoBuildResult, type DaySummary, type Session } from '@/core/types';
@@ -11,7 +13,9 @@ import { AutoBuildPanel } from './AutoBuildPanel';
 import { BlocksEditor } from './BlocksEditor';
 import { ExportControls } from './ExportControls';
 import { buildEntries } from './calendarModel';
+import { readPref, writePref } from '../explore/prefs';
 
+const RESERVED_ONLY_KEY = 'reinvent.agenda.reservedOnly';
 const NO_STARS = new Set<string>();
 const NO_SUMMARIES: DaySummary[] = [];
 
@@ -22,6 +26,7 @@ export function AgendaView(): ReactNode {
   const [building, setBuilding] = useState(false);
   // The side panel eats a third of a split-screen laptop, so it starts closed on narrow windows.
   const [panelOpen, setPanelOpen] = useState(() => window.innerWidth >= 1200);
+  const [reservedOnly, setReservedOnly] = useState(() => readPref(RESERVED_ONLY_KEY) === '1');
 
   const { data } = usePlannerQuery(async (api) => {
     const [agenda, blocks, travel, conflicts, starred, summaries] = await Promise.all([
@@ -37,7 +42,12 @@ export function AgendaView(): ReactNode {
     return { agenda, blocks, travel, conflicts, summaries, starred: new Set(starred), sessions: new Map(sessions.filter((s): s is Session => s !== null).map((s) => [s.key, s])) };
   }, []);
 
-  const entries = useMemo(() => (data ? buildEntries(data.agenda, data.sessions, data.blocks, data.travel) : []), [data]);
+  const shown = useMemo(() => (data && reservedOnly ? data.agenda.filter((i) => i.reservation === 'reserved') : (data?.agenda ?? [])), [data, reservedOnly]);
+  const entries = useMemo(() => (data ? buildEntries(shown, data.sessions, data.blocks, data.travel) : []), [data, shown]);
+  const toggleReservedOnly = (on: boolean): void => {
+    setReservedOnly(on);
+    writePref(RESERVED_ONLY_KEY, on ? '1' : '0');
+  };
   const conflictIds = useMemo(() => new Set(data?.conflicts.map((c) => c.itemId)), [data]);
   const titles = useMemo(() => {
     const map = new Map<string, string>();
@@ -57,7 +67,7 @@ export function AgendaView(): ReactNode {
   };
 
   const overLimit = data?.summaries.filter((d) => d.switches > d.maxSwitches) ?? [];
-  const unscheduled = data ? data.agenda.length - entries.filter((e) => e.type === 'session').length : 0;
+  const unscheduled = shown.length - entries.filter((e) => e.type === 'session').length;
 
   return (
     <div className="flex h-full">
@@ -67,9 +77,15 @@ export function AgendaView(): ReactNode {
             <Sparkles /> {building ? 'Building…' : 'Auto-build'}
           </Button>
           <span className="text-xs whitespace-nowrap text-muted-foreground">
-            {data?.agenda.length ?? 0} sessions
+            {reservedOnly ? `${shown.length} of ${data?.agenda.length ?? 0} reserved` : `${data?.agenda.length ?? 0} sessions`}
             {unscheduled > 0 && ` · ${unscheduled} without a time`}
           </span>
+          <div className="flex items-center gap-2">
+            <Switch id="reserved-only" checked={reservedOnly} onCheckedChange={toggleReservedOnly} />
+            <Label htmlFor="reserved-only" className="text-xs font-normal whitespace-nowrap">
+              Reserved only
+            </Label>
+          </div>
           <div className="ml-auto flex items-center gap-2">
             <ExportControls agendaSize={data?.agenda.length ?? 0} />
             <Button

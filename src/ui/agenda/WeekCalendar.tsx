@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { usePlanner } from '../PlannerProvider';
 import { useUi } from '../UiState';
 import { VENUE_COLORS, fmtMinutes, venueName, venueShort } from '../format';
-import { OriginBadge } from '../shared/badges';
+import { OriginBadge, StatusBadge, TypeChip } from '../shared/badges';
 import { placeDay, type BlockEntry, type CalendarEntry, type PlacedEntry, type SessionEntry, type TravelEntry } from './calendarModel';
 
 const GRID_START = 7 * 60;
@@ -106,7 +106,11 @@ function SessionCard({ entry, conflict, starred }: { entry: SessionEntry; confli
           {starred && <Star aria-label="Starred" className="size-3 shrink-0 fill-warning text-warning" />}
           <span className="truncate font-mono text-muted-foreground">{slot.code}</span>
           {item.pinned && <Pin className="size-3 shrink-0 text-primary" />}
-          <OriginBadge origin={item.origin} className="ml-auto h-4 px-1 text-[10px]" />
+          <StatusBadge status={item.reservation} className="ml-auto h-4 px-1 text-[10px]" />
+        </div>
+        <div className="flex min-w-0 items-center gap-1 overflow-hidden py-px">
+          <TypeChip type={session.type} className="min-w-0 px-1.5 py-0 text-[10px] leading-4" />
+          <OriginBadge origin={item.origin} className="h-4 shrink-0 px-1 text-[10px]" />
         </div>
         <div className="line-clamp-2 font-medium">{session.title}</div>
         <div className="truncate text-muted-foreground">
