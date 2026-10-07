@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
+import { Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { ItemOrigin, ReservationStatus, SlotFit } from '@/core/types';
+import { isHandsOn } from '../format';
 
 const FIT: Record<SlotFit, { label: string; className: string }> = {
   free: { label: 'Free', className: 'bg-success/15 text-success' },
@@ -41,6 +43,23 @@ const STATUS: Record<ReservationStatus, string> = {
   'walk-up': 'bg-info/15 text-info',
 };
 
-export function StatusBadge({ status }: { status: ReservationStatus }): ReactNode {
-  return <Badge className={cn('rounded-md capitalize', STATUS[status])}>{status}</Badge>;
+export function StatusBadge({ status, className }: { status: ReservationStatus; className?: string }): ReactNode {
+  return <Badge className={cn('rounded-md capitalize', STATUS[status], className)}>{status}</Badge>;
+}
+
+// Hands-on formats (worth reserving first) get a filled chip with a wrench; talks an outlined one.
+export function TypeChip({ type, className }: { type: string; className?: string }): ReactNode {
+  const handsOn = isHandsOn(type);
+  return (
+    <span
+      className={cn(
+        'inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] whitespace-nowrap',
+        handsOn ? 'border-primary/30 bg-primary/10 text-primary' : 'text-muted-foreground',
+        className,
+      )}
+    >
+      {handsOn && <Wrench className="size-3 shrink-0" aria-hidden />}
+      <span className="truncate">{type}</span>
+    </span>
+  );
 }
